@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Security Dashboard</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<h1 style="text-align:center">Security Monitoring Dashboard</h1>
+
+<div style="width:600px;margin:auto">
+
+<canvas id="apiChart"></canvas>
+
+</div>
+
+<br><br>
+
+<h2 style="text-align:center">API Activity Logs</h2>
+
+<table>
+
+<tr>
+<th>User</th>
+<th>API</th>
+<th>Time</th>
+</tr>
+
+{% for log in logs %}
+
+<tr>
+<td>{{log[0]}}</td>
+<td>{{log[1]}}</td>
+<td>{{log[2]}}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+<script>
+
+var ctx = document.getElementById('apiChart');
+
+var chart = new Chart(ctx, {
+
+type: 'bar',
+
+data: {
+
+labels: {{ api_counts.keys()|list|tojson }},
+
+datasets: [{
+label: 'API Calls',
+data: {{ api_counts.values()|list|tojson }},
+backgroundColor:[
+'red',
+'blue',
+'green',
+'orange'
+]
+
+}]
+
+}
+
+});
+
+</script>
+
+</body>
+
+</html>

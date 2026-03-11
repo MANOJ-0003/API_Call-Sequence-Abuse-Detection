@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Payment Successful</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div style="text-align:center;margin-top:150px">
+
+<h1>Payment Successful</h1>
+
+<h2>Thank you {{user}}</h2>
+
+<br>
+
+<a href="/products?user={{user}}">
+
+<button class="cart-btn">Continue Shopping</button>
+
+</a>
+
+</div>
+
+</body>
+
+</html>
