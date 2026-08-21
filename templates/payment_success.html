@@ -2,31 +2,24 @@
 <html>
 
 <head>
-
-<title>Payment Successful</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <title>API Sentinel Payment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-
-<div style="text-align:center;margin-top:150px">
-
-<h1>Payment Successful</h1>
-
-<h2>Thank you {{user}}</h2>
-
-<br>
-
-<a href="/products?user={{user}}">
-
-<button class="cart-btn">Continue Shopping</button>
-
-</a>
-
-</div>
-
+<main class="auth-page">
+    <section class="confirmation-card">
+        <div class="confirmation-icon">OK</div>
+        <p class="eyebrow">Workflow Complete</p>
+        <h1>Payment Successful</h1>
+        <h2>Thank you {{user}}</h2>
+        <p class="subtext">The demo session completed the expected API sequence and reset tracking for the next run.</p>
+        <div class="action-row">
+            <a class="button" href="/products?user={{user}}">Continue Monitoring</a>
+            <a class="button button-secondary" href="/">End User Session</a>
+        </div>
+    </section>
+</main>
 </body>
 
 </html>

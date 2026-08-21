@@ -1,0 +1,31 @@
+attack_direct,checkout,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-06-28 12:19:04.391947
+attack_probe,admin-test,Honeypot API Probe,Critical,98,Block + Quarantine,60,1,2026-06-28 12:19:04.426294
+manoj,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-06-28 12:21:54.011922
+test,checkout,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-06-28 12:30:31.198521
+test,admin-test,Workflow Locked,High,78,Workflow Lock,50,2,2026-06-28 12:30:31.214920
+test,add-to-cart,Workflow Locked,High,78,Block + Quarantine,25,3,2026-06-28 12:30:31.217175
+anonymous,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-06-28 12:30:54.859103
+anonymous,cart,Workflow Locked,High,78,Workflow Lock,50,2,2026-06-28 12:30:54.870240
+anonymous,checkout,Workflow Locked,High,78,Block + Quarantine,25,3,2026-06-28 12:30:54.871243
+anonymous,pay,Workflow Locked,Critical,92,Block + Quarantine,0,4,2026-06-28 12:30:54.872748
+anonymous,add-to-cart,Workflow Locked,Critical,92,Block + Quarantine,0,5,2026-06-28 12:30:54.873752
+anonymous,logout,Workflow Locked,Critical,92,Block + Quarantine,0,6,2026-06-28 12:30:54.874752
+test,checkout,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-06-28 12:32:16.132043
+u1,add-to-cart,Invalid Product Request,Medium,65,Adaptive Cooldown,88,1,2026-06-28 12:46:03.122267
+u1,admin-test,Honeypot API Probe,Critical,98,Block + Quarantine,48,2,2026-06-28 12:46:03.143906
+anonymous,admin-test,Honeypot API Probe,Critical,98,Block + Quarantine,60,1,2026-06-28 12:46:03.145109
+u1,logout,Workflow Locked,Critical,92,Block + Quarantine,8,3,2026-06-28 12:46:03.147116
+anonymous,logout,Workflow Locked,Critical,92,Block + Quarantine,20,2,2026-06-28 12:46:03.148187
+anonymous,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-06-28 12:46:37.532738
+hello,checkout,Checkout Bypass Attempt,High,85,Workflow Lock,75,1,2026-06-28 13:17:38.381912
+manoj,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-07-20 13:14:15.981112
+user1,checkout,Repeated Checkout Attempt,Medium,70,Warning,88,1,2026-08-12 10:19:21.002187
+player325,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-08-20 10:31:08.362511
+bypass-test,checkout,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-08-21 10:13:36.040810
+security-test,checkout,Business-State Dependency Violation,High,86,Workflow Lock,75,1,2026-08-21 10:13:50.923252
+step-up-test,cart,Business-State Dependency Violation,Medium,64,Warning,88,1,2026-08-21 10:13:50.936094
+security-test,checkout,Business-State Dependency Violation,High,86,Workflow Lock,75,1,2026-08-21 10:14:04.985070
+step-up-test,cart,Business-State Dependency Violation,Medium,64,Warning,88,1,2026-08-21 10:14:04.995049
+anonymous,debug,Honeypot API Probe,Critical,98,Block + Quarantine,60,1,2026-08-21 10:17:26.857640
+anonymous,debug,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,60,1,2026-08-21 10:20:43.453363
+anonymous,debug,Honeypot API Probe,Critical,98,Block + Quarantine,60,1,2026-08-21 10:55:08.935214

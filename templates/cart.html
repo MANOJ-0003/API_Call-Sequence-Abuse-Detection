@@ -2,39 +2,134 @@
 <html>
 
 <head>
-
-<title>Cart</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <title>API Sentinel Cart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Cart Workflow</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <a href="/products?user={{user}}">Products</a>
+            <span class="active">Cart</span>
+            <span>Checkout Guard</span>
+        </nav>
+    </aside>
 
-<div style="text-align:center;margin-top:120px">
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" value="Cart session for {{user}}" aria-label="Cart session" readonly>
+            </div>
+            <div class="top-actions">
+                <span class="status-chip status-low">Sequence Valid</span>
+                <div class="avatar">{{user[0]|upper}}</div>
+            </div>
+        </header>
 
-<h1>{{item.name}} added to cart</h1>
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Cart Step Captured</p>
+                    {% if item %}
+                    <h1>{{item.name}} added to cart</h1>
+                    <p class="subtext">The add-to-cart API was recorded before checkout for user {{user}}.</p>
+                    {% else %}
+                    <h1>Your Cart</h1>
+                    <p class="subtext">Review the current cart before moving to the protected checkout step.</p>
+                    {% endif %}
+                </div>
+                <a class="button button-success" href="/checkout?user={{user}}">Proceed to Checkout</a>
+            </div>
 
-<h2>Price: ₹{{item.price}}</h2>
+            <div class="kpi-grid">
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Total Items</span><span>Cart</span></div>
+                    <p class="kpi-value">{{item_count}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Cart Value</span><span>Amount</span></div>
+                    <p class="kpi-value kpi-text">Rs. {{total}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Required Step</span><span>Rule</span></div>
+                    <p class="kpi-value kpi-text">add-to-cart</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Next API</span><span>Flow</span></div>
+                    <p class="kpi-value kpi-text">checkout</p>
+                </article>
+            </div>
 
-<br>
+            <div class="grid-two">
+                <section class="panel table-panel">
+                    <h2>Cart Items</h2>
+                    {% if items %}
+                    <table>
+                        <tr>
+                            <th>#</th>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                        </tr>
+                        {% for cart_item in items %}
+                        <tr>
+                            <td>{{loop.index}}</td>
+                            <td>{{cart_item.name}}</td>
+                            <td>Rs. {{cart_item.price}}</td>
+                            <td><span class="status-chip status-low">Ready</span></td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="2"><b>Total</b></td>
+                            <td colspan="2"><b>Rs. {{total}}</b></td>
+                        </tr>
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <h3>No items in cart</h3>
+                        <p class="subtext">Add a product first. Checkout without this step will be blocked as sequence abuse.</p>
+                    </div>
+                    {% endif %}
+                </section>
 
-<a href="/products?user={{user}}">
+                <section class="panel">
+                    <h2>Workflow Context</h2>
+                    <p class="subtext">This cart step proves the user followed the expected business workflow before checkout.</p>
+                    <div class="workflow">
+                        <span class="workflow-step">Products</span>
+                        <span class="workflow-arrow">-&gt;</span>
+                        <span class="workflow-step">Add to Cart</span>
+                        <span class="workflow-arrow">-&gt;</span>
+                        <span class="workflow-step">Checkout</span>
+                    </div>
+                    <div class="detail-list">
+                        <div>
+                            <strong>Why cart matters</strong>
+                            <span>The detector uses this step to distinguish normal shopping behavior from direct checkout bypass attempts.</span>
+                        </div>
+                        <div>
+                            <strong>Current decision</strong>
+                            <span>This session has a cart event, so checkout can continue unless another rule is violated.</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
 
-<button class="cart-btn">Continue Shopping</button>
-
-</a>
-
-<br><br>
-
-<a href="/checkout?user={{user}}">
-
-<button class="pay-btn">Checkout</button>
-
-</a>
-
+            <div class="action-row">
+                <a class="button button-secondary" href="/products?user={{user}}">Add More Products</a>
+                <a class="button button-success" href="/checkout?user={{user}}">Checkout</a>
+            </div>
+        </section>
+    </main>
 </div>
-
 </body>
 
 </html>

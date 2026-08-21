@@ -2,31 +2,89 @@
 <html>
 
 <head>
-
-<title>Secure Shop Login</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <title>API Sentinel Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+<main class="auth-landing">
+    <section class="auth-hero">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Behavioral API Security</p>
+            </div>
+        </div>
 
-<div class="login-box">
+        <div class="hero-copy">
+            <p class="eyebrow">Call-Sequence Abuse Detection</p>
+            <h1>Detect abnormal API journeys before business logic is abused.</h1>
+            <p>Monitor login, product, cart, checkout, and payment flows with behavioral sequence validation, trust scoring, and real-time prevention.</p>
+        </div>
 
-<h2>Secure Shop Login</h2>
+        <div class="security-map" aria-hidden="true">
+            <div class="map-node active-node">
+                <span>01</span>
+                <strong>Login</strong>
+            </div>
+            <div class="map-line"></div>
+            <div class="map-node">
+                <span>02</span>
+                <strong>Products</strong>
+            </div>
+            <div class="map-line"></div>
+            <div class="map-node">
+                <span>03</span>
+                <strong>Cart</strong>
+            </div>
+            <div class="map-line danger-line"></div>
+            <div class="map-node danger-node">
+                <span>!</span>
+                <strong>Bypass Blocked</strong>
+            </div>
+        </div>
 
-<form action="/login" method="post">
+        <div class="hero-stats">
+            <div>
+                <strong>Trust Score</strong>
+                <span>Adaptive user risk</span>
+            </div>
+            <div>
+                <strong>Workflow Lock</strong>
+                <span>Stops unsafe sessions</span>
+            </div>
+            <div>
+                <strong>Admin View</strong>
+                <span>Audit every login</span>
+            </div>
+        </div>
+    </section>
 
-<input type="text" name="user" placeholder="Enter username" required>
+    <section class="auth-card auth-panel">
+        <p class="eyebrow">Role-Based Access</p>
+        <h1>Login</h1>
+        <p class="subtext">Admin opens the dashboard. Registered users continue to the protected commerce workflow.</p>
 
-<br><br>
+        {% if error %}
+        <p class="form-error">{{error}}</p>
+        {% endif %}
 
-<button type="submit">Login</button>
+        {% if success %}
+        <p class="form-success">{{success}}</p>
+        {% endif %}
 
-</form>
+        <form action="/login" method="post">
+            <input type="text" name="user" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
 
-</div>
-
+        <div class="action-row">
+            <a class="button button-secondary" href="/register">Create New User</a>
+        </div>
+    </section>
+</main>
 </body>
 
 </html>

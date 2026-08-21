@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>API Sentinel Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<main class="auth-landing">
+    <section class="auth-hero register-hero">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">User Enrollment</p>
+            </div>
+        </div>
+
+        <div class="hero-copy">
+            <p class="eyebrow">Secure Onboarding</p>
+            <h1>Create a monitored user identity for workflow testing.</h1>
+            <p>Every user verifies an email address before the account is activated.</p>
+        </div>
+
+        <div class="security-map compact-map" aria-hidden="true">
+            <div class="map-node active-node">
+                <span>+</span>
+                <strong>Register</strong>
+            </div>
+            <div class="map-line"></div>
+            <div class="map-node">
+                <span>01</span>
+                <strong>Login</strong>
+            </div>
+            <div class="map-line"></div>
+            <div class="map-node">
+                <span>02</span>
+                <strong>Shop Flow</strong>
+            </div>
+        </div>
+
+        <div class="hero-stats">
+            <div>
+                <strong>Activity Log</strong>
+            <span>Email verified</span>
+            </div>
+            <div>
+                <strong>Role Safe</strong>
+                <span>Admin reserved</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="auth-card auth-panel">
+        <p class="eyebrow">User Registration</p>
+        <h1>Create New User</h1>
+        <p class="subtext">Create an account, verify the email OTP, then log in to access the protected commerce workflow.</p>
+
+        {% if error %}
+        <p class="form-error">{{error}}</p>
+        {% endif %}
+
+        <form action="/register" method="post">
+            <input type="text" name="user" placeholder="Create username" required>
+            <input type="email" name="email" placeholder="Email address" required>
+            <input type="password" name="password" placeholder="Create password" required>
+            <button type="submit">Send Verification Code</button>
+        </form>
+
+        <div class="action-row">
+            <a class="button button-secondary" href="/">Back to Login</a>
+        </div>
+    </section>
+</main>
+</body>
+
+</html>

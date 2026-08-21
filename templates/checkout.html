@@ -2,52 +2,83 @@
 <html>
 
 <head>
-
-<title>Checkout</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <title>API Sentinel Checkout</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Checkout Guard</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <a href="/products?user={{user}}">User Flow</a>
+            <span class="active">Checkout</span>
+            <span>Risk Review</span>
+        </nav>
+    </aside>
 
-<h1 style="text-align:center">Order Summary</h1>
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" value="Validated checkout session for {{user}}" aria-label="Checkout session" readonly>
+            </div>
+            <div class="top-actions">
+                <span class="status-chip status-low">Low Risk</span>
+                <div class="avatar">{{user[0]|upper}}</div>
+            </div>
+        </header>
 
-<table>
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Order Verification</p>
+                    <h1>Order Summary</h1>
+                    <p class="subtext">Checkout is allowed after the cart step is present in the current call sequence.</p>
+                </div>
+                <a class="button button-success" href="/pay?user={{user}}">Pay Now</a>
+            </div>
 
-<tr>
-<th>Item</th>
-<th>Price</th>
-</tr>
+            <div class="grid-two">
+                <div class="panel table-panel">
+                    <h2>Cart Items</h2>
+                    <table>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                        </tr>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{item.name}}</td>
+                            <td>Rs. {{item.price}}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td><b>Total</b></td>
+                            <td><b>Rs. {{total}}</b></td>
+                        </tr>
+                    </table>
+                </div>
 
-{% for item in items %}
-
-<tr>
-<td>{{item.name}}</td>
-<td>₹{{item.price}}</td>
-</tr>
-
-{% endfor %}
-
-<tr>
-<td><b>Total</b></td>
-<td><b>₹{{total}}</b></td>
-</tr>
-
-</table>
-
-<br>
-
-<div style="text-align:center">
-
-<a href="/pay?user={{user}}">
-
-<button class="pay-btn">Pay Now</button>
-
-</a>
-
+                <div class="panel">
+                    <h2>Risk Score</h2>
+                    <p class="subtext">Current flow contains the required cart event before checkout.</p>
+                    <div class="risk-meter"><span></span></div>
+                    <div class="workflow">
+                        <span class="workflow-step">Cart Found</span>
+                        <span class="workflow-arrow">-&gt;</span>
+                        <span class="workflow-step">Checkout Approved</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 </div>
-
 </body>
 
 </html>

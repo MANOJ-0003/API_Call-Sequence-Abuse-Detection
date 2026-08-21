@@ -2,51 +2,86 @@
 <html>
 
 <head>
-
-<title>Products</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+    <title>API Sentinel Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Workflow Monitor</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <span class="active">User Flow</span>
+            <span>Products</span>
+            <span>Cart</span>
+            <span>Checkout</span>
+        </nav>
+    </aside>
 
-<h1 style="text-align:center">Welcome {{user}}</h1>
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" value="Session: {{user}}" aria-label="Current session" readonly>
+            </div>
+            <div class="top-actions">
+                <span>Normal Flow</span>
+                <div class="avatar">{{user[0]|upper}}</div>
+            </div>
+        </header>
 
-<div class="container">
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Protected Commerce APIs</p>
+                    <h1>Welcome {{user}}</h1>
+                    <p class="subtext">Follow the expected sequence so the detector sees login, products, cart, checkout, and payment in order.</p>
+                </div>
+                <div class="action-row compact-actions">
+                    <a class="button button-secondary" href="/cart?user={{user}}">View Cart</a>
+                    <a class="button button-secondary" href="/checkout?user={{user}}">Go to Checkout</a>
+                </div>
+            </div>
 
-{% for product in products %}
+            <div class="panel">
+                <h2>Expected User Journey</h2>
+                <div class="workflow">
+                    <span class="workflow-step">Login</span>
+                    <span class="workflow-arrow">-&gt;</span>
+                    <span class="workflow-step">Products</span>
+                    <span class="workflow-arrow">-&gt;</span>
+                    <span class="workflow-step">Add to Cart</span>
+                    <span class="workflow-arrow">-&gt;</span>
+                    <span class="workflow-step">Checkout</span>
+                    <span class="workflow-arrow">-&gt;</span>
+                    <span class="workflow-step">Payment</span>
+                </div>
+            </div>
 
-<div class="card">
-
-<img src="{{ url_for('static', filename=product.img) }}" class="product-img">
-
-<h3>{{product.name}}</h3>
-
-<div class="price">₹{{product.price}}</div>
-
-<a href="/add-to-cart?user={{user}}&item={{product.name}}">
-
-<button class="cart-btn">Add to Cart</button>
-
-</a>
-
+            <div class="products-grid">
+                {% for product in products %}
+                <article class="product-card">
+                    {% if product.is_external_img %}
+                    <img src="{{ product.img }}" class="product-img" alt="{{product.name}}">
+                    {% else %}
+                    <img src="{{ url_for('static', filename=product.img) }}" class="product-img" alt="{{product.name}}">
+                    {% endif %}
+                    <div class="product-body">
+                        <h3>{{product.name}}</h3>
+                        <p class="price">Rs. {{product.price}}</p>
+                        <a class="button" href="/add-to-cart?user={{user}}&item={{product.name}}">Add to Cart</a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
 </div>
-
-{% endfor %}
-
-</div>
-
-<div class="checkout">
-
-<a href="/checkout?user={{user}}">
-
-<button>Checkout</button>
-
-</a>
-
-</div>
-
 </body>
 
 </html>

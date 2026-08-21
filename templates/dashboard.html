@@ -2,79 +2,348 @@
 <html>
 
 <head>
-
-<title>Security Dashboard</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <title>API Sentinel Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Security Operations</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <span class="active">Dashboard</span>
+            <a href="/simulate-attacks">Attack Simulation</a>
+            <a href="/">User Workflow</a>
+            <a href="/admin/logout">Logout</a>
+            <span>Risk Engine</span>
+            <span>Reports</span>
+        </nav>
+    </aside>
 
-<h1 style="text-align:center">Security Monitoring Dashboard</h1>
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" value="Behavioral API call-sequence monitoring" aria-label="Dashboard context" readonly>
+            </div>
+            <div class="top-actions">
+                <span class="status-chip status-medium">Demo Mode</span>
+                <div class="avatar">A</div>
+            </div>
+        </header>
 
-<div style="width:600px;margin:auto">
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Real-Time Monitoring</p>
+                    <h1>Security Operations Dashboard</h1>
+                    <p class="subtext">Live view of API activity, suspicious sequences, trust scores, and prevention actions.</p>
+                </div>
+                <a class="button" href="/simulate-attacks">Run Simulation View</a>
+            </div>
 
-<canvas id="apiChart"></canvas>
+            <div class="kpi-grid">
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Total Requests</span><span>Traffic</span></div>
+                    <p class="kpi-value">{{total_requests}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Suspicious Requests</span><span>Detection</span></div>
+                    <p class="kpi-value">{{suspicious_requests}}</p>
+                </article>
+                <article class="kpi-card danger-card">
+                    <div class="kpi-top"><span>Blocked Attempts</span><span>Prevention</span></div>
+                    <p class="kpi-value">{{blocked_requests}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Detection Rate</span><span>Metric</span></div>
+                    <p class="kpi-value">{{detection_rate}}%</p>
+                </article>
+            </div>
 
+            <div class="kpi-grid">
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Registered Users</span><span>Accounts</span></div>
+                    <p class="kpi-value">{{registered_user_count}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Login Activities</span><span>Audit</span></div>
+                    <p class="kpi-value">{{user_activities|length}}</p>
+                </article>
+                <article class="kpi-card danger-card">
+                    <div class="kpi-top"><span>Failed Logins</span><span>Status</span></div>
+                    <p class="kpi-value">{{failed_logins}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Active Users</span><span>Observed</span></div>
+                    <p class="kpi-value">{{active_users}}</p>
+                </article>
+            </div>
+
+            <section class="panel section-gap">
+                <h2>Implemented Prevention Mechanisms</h2>
+                <div class="mechanism-grid">
+                    {% for mechanism in prevention_mechanisms %}
+                    <article class="mechanism-card">
+                        <div class="mechanism-head">
+                            <strong>{{mechanism.name}}</strong>
+                            <span class="status-chip status-{{mechanism.status}}">{{mechanism.label}}</span>
+                        </div>
+                        <p class="mechanism-metric">{{mechanism.metric}}</p>
+                        <p class="subtext">{{mechanism.description}}</p>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <div class="grid-two">
+                <section class="panel">
+                    <h2>API Requests by Endpoint</h2>
+                    <div class="chart-wrap">
+                        <canvas id="apiChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>Risk Distribution</h2>
+                    <div class="chart-wrap">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </section>
+            </div>
+
+            <div class="grid-two section-gap">
+                <section class="panel table-panel">
+                    <h2>Prevention Actions</h2>
+                    <div class="response-strip">
+                        <span>Cooldowns: {{cooldown_events}}</span>
+                        <span>Locked: {{locked_sessions}}</span>
+                        <span>Quarantined: {{quarantined_sessions}}</span>
+                    </div>
+                    {% if action_counts %}
+                    <table>
+                        <tr>
+                            <th>Action</th>
+                            <th>Count</th>
+                        </tr>
+                        {% for action, count in action_counts.items() %}
+                        <tr>
+                            <td>{{action}}</td>
+                            <td>{{count}}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <h3>No prevention events yet</h3>
+                        <p class="subtext">Trigger a suspicious sequence or open the simulation page to demonstrate the rules.</p>
+                    </div>
+                    {% endif %}
+                </section>
+
+                <section class="panel table-panel">
+                    <h2>User Trust State</h2>
+                    {% if user_states %}
+                    <table>
+                        <tr>
+                            <th>User</th>
+                            <th>Trust</th>
+                            <th>Violations</th>
+                            <th>State</th>
+                        </tr>
+                        {% for user, state in user_states.items() %}
+                        <tr>
+                            <td>{{user}}</td>
+                            <td>{{state.trust_score}}</td>
+                            <td>{{state.violations}}</td>
+                            <td>
+                                {% if state.quarantined %}
+                                <span class="status-chip status-critical">Quarantine</span>
+                                {% elif state.workflow_locked %}
+                                <span class="status-chip status-high">Locked</span>
+                                {% else %}
+                                <span class="status-chip status-low">Active</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <h3>No active users</h3>
+                        <p class="subtext">Start a workflow from the login page to create a monitored session.</p>
+                    </div>
+                    {% endif %}
+                </section>
+            </div>
+
+            <section class="panel table-panel section-gap">
+                <h2>All Users Status</h2>
+                {% if user_status %}
+                <table>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Last Action</th>
+                        <th>Status</th>
+                        <th>Last Seen</th>
+                    </tr>
+                    {% for user, state in user_status.items() %}
+                    <tr>
+                        <td>{{user}}</td>
+                        <td>{{state.role}}</td>
+                        <td>{{state.last_action}}</td>
+                        <td>
+                            {% if "Invalid" in state.status or "not registered" in state.status %}
+                            <span class="status-chip status-medium">{{state.status}}</span>
+                            {% elif "completed" in state.status or "access" in state.status or "created" in state.status %}
+                            <span class="status-chip status-low">{{state.status}}</span>
+                            {% else %}
+                            <span class="status-chip status-medium">{{state.status}}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{state.last_seen}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <h3>No user status available</h3>
+                    <p class="subtext">Register or login as a user to populate this table.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="panel table-panel section-gap">
+                <h2>User Login Activity</h2>
+                {% if user_activities %}
+                <table>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Activity</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                    {% for activity in user_activities|reverse %}
+                    <tr>
+                        <td>{{activity[0]}}</td>
+                        <td>{{activity[1]}}</td>
+                        <td>{{activity[2]}}</td>
+                        <td>{{activity[3]}}</td>
+                        <td>{{activity[4]}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <h3>No login activity yet</h3>
+                    <p class="subtext">User registrations, login attempts, admin access, and logout events will appear here.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="panel table-panel section-gap">
+                <h2>Security Events</h2>
+                {% if events %}
+                <table>
+                    <tr>
+                        <th>User</th>
+                        <th>API</th>
+                        <th>Threat</th>
+                        <th>Risk</th>
+                        <th>Action</th>
+                        <th>Trust</th>
+                        <th>Timestamp</th>
+                    </tr>
+                    {% for event in events|reverse %}
+                    <tr>
+                        <td>{{event[0]}}</td>
+                        <td>{{event[1]}}</td>
+                        <td>{{event[2]}}</td>
+                        <td><span class="status-chip status-{{event[3]|lower}}">{{event[3]}}</span></td>
+                        <td>{{event[5]}}</td>
+                        <td>{{event[6]}}</td>
+                        <td>{{event[8]}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <h3>No suspicious activity recorded</h3>
+                    <p class="subtext">The event log will show blocked workflow bypasses, cooldowns, locks, and honeypot probes.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="panel table-panel section-gap">
+                <h2>Recent API Activity</h2>
+                <table>
+                    <tr>
+                        <th>User</th>
+                        <th>API Name</th>
+                        <th>Timestamp</th>
+                        <th>Status</th>
+                    </tr>
+                    {% for log in logs|reverse %}
+                    <tr>
+                        <td>{{log[0]}}</td>
+                        <td>{{log[1]}}</td>
+                        <td>{{log[2]}}</td>
+                        <td><span class="status-chip status-low">Observed</span></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </section>
+        </section>
+    </main>
 </div>
 
-<br><br>
-
-<h2 style="text-align:center">API Activity Logs</h2>
-
-<table>
-
-<tr>
-<th>User</th>
-<th>API</th>
-<th>Time</th>
-</tr>
-
-{% for log in logs %}
-
-<tr>
-<td>{{log[0]}}</td>
-<td>{{log[1]}}</td>
-<td>{{log[2]}}</td>
-</tr>
-
-{% endfor %}
-
-</table>
-
 <script>
+var apiCtx = document.getElementById('apiChart');
+var riskCtx = document.getElementById('riskChart');
 
-var ctx = document.getElementById('apiChart');
-
-var chart = new Chart(ctx, {
-
-type: 'bar',
-
-data: {
-
-labels: {{ api_counts.keys()|list|tojson }},
-
-datasets: [{
-label: 'API Calls',
-data: {{ api_counts.values()|list|tojson }},
-backgroundColor:[
-'red',
-'blue',
-'green',
-'orange'
-]
-
-}]
-
-}
-
+new Chart(apiCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ api_counts.keys()|list|tojson }},
+        datasets: [{
+            label: 'API Calls',
+            data: {{ api_counts.values()|list|tojson }},
+            backgroundColor: ['#00ADB5', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+            borderRadius: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
 });
 
+new Chart(riskCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ risk_counts.keys()|list|tojson }},
+        datasets: [{
+            data: {{ risk_counts.values()|list|tojson }},
+            backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#7F1D1D']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
 </script>
-
 </body>
 
 </html>

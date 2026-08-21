@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>API Sentinel Attack Simulation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Attack Simulation</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <a href="/dashboard">Dashboard</a>
+            <span class="active">Attack Simulation</span>
+            <a href="/">User Workflow</a>
+            <a href="/admin/logout">Logout</a>
+            <span>Evaluation</span>
+        </nav>
+    </aside>
+
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" value="Business logic abuse scenarios" aria-label="Simulation context" readonly>
+            </div>
+            <div class="top-actions">
+                <span class="status-chip status-medium">Test Suite</span>
+                <div class="avatar">T</div>
+            </div>
+        </header>
+
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Experimental Evaluation</p>
+                    <h1>Attack Simulation Results</h1>
+                    <p class="subtext">Prepared scenarios for demonstrating detection, trust scoring, workflow lock, quarantine, cooldown, and honeypot prevention.</p>
+                </div>
+                <a class="button button-secondary" href="/dashboard">Open Dashboard</a>
+            </div>
+
+            <section class="panel table-panel">
+                <h2>Scenario Matrix</h2>
+                <table>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>API Sequence</th>
+                        <th>Detection</th>
+                        <th>Risk</th>
+                        <th>Prevention</th>
+                        <th>Trust</th>
+                    </tr>
+                    {% for result in results %}
+                    <tr>
+                        <td>
+                            <strong>{{result.name}}</strong>
+                            <p class="table-note">{{result.description}}</p>
+                        </td>
+                        <td>
+                            <div class="workflow table-workflow">
+                                {% for step in result.flow %}
+                                <span class="workflow-step">{{step}}</span>
+                                {% if not loop.last %}<span class="workflow-arrow">-&gt;</span>{% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>{{result.analysis.title}}</td>
+                        <td><span class="status-chip status-{{result.analysis.risk|lower}}">{{result.analysis.risk}}</span></td>
+                        <td>{{result.prevention.action}}</td>
+                        <td>{{result.prevention.trust_score}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </section>
+
+            <div class="grid-two section-gap">
+                <section class="panel">
+                    <h2>Live Demo URLs</h2>
+                    <div class="detail-list">
+                        <div>
+                            <strong>Checkout bypass</strong>
+                            <span>/checkout?user=attacker</span>
+                        </div>
+                        <div>
+                            <strong>Payment bypass</strong>
+                            <span>/pay?user=attacker</span>
+                        </div>
+                        <div>
+                            <strong>Honeypot probe</strong>
+                            <span>/api/admin_test?user=attacker</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>Evaluation Metrics to Record</h2>
+                    <div class="detail-list">
+                        <div>
+                            <strong>Detection accuracy</strong>
+                            <span>Detected attacks divided by total simulated attack cases.</span>
+                        </div>
+                        <div>
+                            <strong>False positive rate</strong>
+                            <span>Normal flows incorrectly blocked divided by total normal flows.</span>
+                        </div>
+                        <div>
+                            <strong>Response time</strong>
+                            <span>Measure page response latency while running normal and attack requests.</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+
+</html>

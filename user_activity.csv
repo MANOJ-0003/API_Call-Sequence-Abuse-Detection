@@ -1,0 +1,83 @@
+admin,admin,login,Admin dashboard access,2026-06-28 13:15:44.978660
+status_user,user,register,Registration created,2026-06-28 13:15:44.984671
+missing_user,user,login,User not registered,2026-06-28 13:15:45.010220
+status_user,user,login,User workflow access,2026-06-28 13:15:45.010220
+admin,admin,login,Invalid admin password,2026-06-28 13:15:45.017224
+admin,admin,login,Invalid admin password,2026-06-28 13:16:15.733783
+hello,user,login,User workflow access,2026-06-28 13:17:33.800113
+admin,admin,login,Admin dashboard access,2026-06-28 13:18:08.717129
+hello,user,login,User workflow access,2026-06-28 15:51:39.238806
+hello,user,payment,Workflow completed,2026-06-28 15:52:06.152672
+admin,admin,login,Invalid admin password,2026-06-28 15:52:24.369711
+admin,admin,login,Admin dashboard access,2026-06-28 15:54:47.878958
+admin,admin,login,Invalid admin password,2026-07-02 21:58:27.770655
+admin,admin,login,Invalid admin password,2026-07-02 21:58:38.051255
+admin,admin,login,Invalid admin password,2026-07-02 21:58:46.473798
+hello,user,login,User workflow access,2026-07-02 21:58:54.459908
+hello,user,login,User workflow access,2026-07-02 22:01:27.712893
+hello,user,login,User workflow access,2026-07-02 22:01:46.892507
+hello,user,login,User workflow access,2026-07-02 22:06:35.358994
+hello,user,payment,Workflow completed,2026-07-02 22:07:55.312743
+manoj,user,login,User not registered,2026-07-20 13:12:08.409367
+admin,admin,login,Invalid admin password,2026-07-20 13:12:26.872039
+manoj,user,login,User not registered,2026-07-20 13:12:36.463939
+manoj,user,register,Registration created,2026-07-20 13:12:46.145998
+manoj,user,login,User workflow access,2026-07-20 13:14:02.315520
+manoj,user,payment,Workflow completed,2026-07-20 13:14:13.544589
+admin,admin,login,Invalid admin password,2026-07-20 13:14:43.485212
+manoj,user,login,Invalid user password,2026-07-20 13:14:51.184689
+admin,admin,login,Invalid admin password,2026-07-20 13:14:56.658144
+user1,user,register,Registration created,2026-08-12 10:17:46.036793
+user1,user,login,User workflow access,2026-08-12 10:17:58.392078
+admin,admin,login,Admin dashboard access,2026-08-12 10:20:50.096997
+admin,admin,login,Invalid admin password,2026-08-20 10:28:07.783540
+hello,user,login,Invalid user password,2026-08-20 10:28:48.541809
+hello,user,login,Invalid user password,2026-08-20 10:29:01.738435
+player325,user,register,Registration created,2026-08-20 10:29:47.185640
+payer325,user,login,User not registered,2026-08-20 10:30:04.830863
+player325,user,login,User workflow access,2026-08-20 10:30:16.913391
+player325,user,payment,Workflow completed,2026-08-20 10:31:01.774385
+security-test,user,login,User workflow access,2026-08-21 10:13:36.020543
+security-test,user,payment,Workflow completed,2026-08-21 10:13:36.038575
+security-test,user,login,User workflow access,2026-08-21 10:13:50.901093
+security-test,user,payment,Workflow completed,2026-08-21 10:13:50.919081
+security-test,user,login,User workflow access,2026-08-21 10:13:50.921081
+step-up-test,user,login,User workflow access,2026-08-21 10:13:50.932870
+security-test,user,login,User workflow access,2026-08-21 10:14:04.955374
+security-test,user,payment,Workflow completed,2026-08-21 10:14:04.978888
+security-test,user,login,User workflow access,2026-08-21 10:14:04.983160
+step-up-test,user,login,User workflow access,2026-08-21 10:14:04.993013
+step-up-test,user,step-up-authentication,Verified before checkout,2026-08-21 10:14:05.003009
+admin,admin,login,Admin dashboard access,2026-08-21 10:14:34.658847
+admin,admin,login,Invalid admin password,2026-08-21 10:17:55.585312
+admin,admin,login,Admin dashboard access,2026-08-21 10:18:03.748632
+admin,admin,logout,Admin logged out,2026-08-21 10:19:49.256787
+admin,admin,login,Admin dashboard access,2026-08-21 10:20:10.292379
+admin,admin,logout,Admin logged out,2026-08-21 10:20:14.745719
+hello,user,login,User workflow access,2026-08-21 10:53:02.080850
+session-guard-test,user,login,User workflow access,2026-08-21 10:55:08.924633
+hello,user,login,User workflow access,2026-08-21 10:55:34.957001
+hello,user,login,Invalid user password,2026-08-21 10:55:53.032226
+hello,user,login,User workflow access,2026-08-21 10:56:21.030094
+hello,user,login,Invalid user password,2026-08-21 10:57:54.683003
+hello,user,login,User workflow access,2026-08-21 10:58:09.148497
+hello,user,login,Invalid user password,2026-08-21 10:58:34.899567
+admin,admin,login,Admin dashboard access,2026-08-21 10:59:30.625668
+otp-enrollment-test,user,register,Email verification pending,2026-08-21 11:12:31.579037
+otp-enrollment-test,user,email-verification,Email verified; account activated,2026-08-21 11:12:31.585167
+otp-enrollment-test,user,login,User workflow access,2026-08-21 11:12:31.588777
+phone-otp-test,user,register,Email and phone verification pending,2026-08-21 11:16:26.047658
+phone-otp-test,user,contact-verification,Email and phone verified; account activated,2026-08-21 11:16:26.054134
+phone-otp-test,user,login,User workflow access,2026-08-21 11:16:26.057170
+akatsuki,user,register,Email and phone verification pending,2026-08-21 11:18:37.294320
+private-otp-test,user,register,Email and phone verification pending,2026-08-21 11:20:58.676202
+private-otp-test,user,contact-verification,Email and phone verified; account activated,2026-08-21 11:20:58.681632
+akatsuki,user,register,OTP delivery unavailable,2026-08-21 11:21:35.246195
+akatsuki,user,register,OTP delivery unavailable,2026-08-21 11:21:52.213355
+akatsuki,user,register,OTP delivery unavailable,2026-08-21 11:23:24.602133
+akatsuki,user,register,OTP delivery unavailable,2026-08-21 11:27:59.474947
+user325,user,register,OTP delivery unavailable,2026-08-21 11:29:54.749310
+email-only-test,user,register,Email verification pending,2026-08-21 11:33:41.639161
+email-only-test,user,email-verification,Email verified; account activated,2026-08-21 11:33:41.644247
+email-only-test,user,login,User workflow access,2026-08-21 11:33:41.647254
+hello,user,login,User workflow access,2026-08-21 11:45:01.854987

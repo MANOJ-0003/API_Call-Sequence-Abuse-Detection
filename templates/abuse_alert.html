@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>API Sentinel Alert</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Detection Engine</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <span class="active">Active Alert</span>
+            <span>Request Blocked</span>
+            <span>Restart Required</span>
+        </nav>
+    </aside>
+
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" value="Incident for {{user}} on {{api_name}}" aria-label="Incident context" readonly>
+            </div>
+            <div class="top-actions">
+                <span class="status-chip status-{{analysis.risk|lower}}">{{analysis.risk}} Risk</span>
+                <div class="avatar">{{user[0]|upper}}</div>
+            </div>
+        </header>
+
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Abuse Detection Alert</p>
+                    <h1>{{analysis.title}}</h1>
+                    <p class="subtext">{{analysis.summary}}</p>
+                </div>
+                <span class="status-chip status-{{analysis.risk|lower}}">{{prevention.action}}</span>
+            </div>
+
+            <div class="kpi-grid">
+                <article class="kpi-card danger-card">
+                    <div class="kpi-top"><span>Risk Score</span><span>Alert</span></div>
+                    <p class="kpi-value">{{analysis.risk_score}}/100</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>User</span><span>Session</span></div>
+                    <p class="kpi-value">{{user}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Triggered API</span><span>Endpoint</span></div>
+                    <p class="kpi-value kpi-text">{{api_name}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Missing Step</span><span>Rule</span></div>
+                    <p class="kpi-value kpi-text">{{analysis.missing_step or "None"}}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Trust Score</span><span>Behavior</span></div>
+                    <p class="kpi-value">{{prevention.trust_score}}</p>
+                </article>
+            </div>
+
+            <div class="grid-two">
+                <section class="panel alert-panel">
+                    <h2>Why this is abuse</h2>
+                    <p>{{analysis.reason}}</p>
+
+                    <div class="detail-list">
+                        <div>
+                            <strong>Violated rule</strong>
+                            <span>{{analysis.violated_rule}}</span>
+                        </div>
+                        <div>
+                            <strong>Recommended action</strong>
+                            <span>{{analysis.recommendation}}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>Prevention Decision</h2>
+                    <div class="risk-score-card">
+                        <span>{{analysis.risk_score}}</span>
+                        <p>{{prevention.message}}</p>
+                    </div>
+                    <div class="risk-meter risk-meter-danger"><span style="width: {{analysis.risk_score}}%"></span></div>
+                    <div class="detail-list">
+                        <div>
+                            <strong>Action taken</strong>
+                            <span>{{prevention.action}}</span>
+                        </div>
+                        <div>
+                            <strong>Violation count</strong>
+                            <span>{{prevention.violations}}</span>
+                        </div>
+                        <div>
+                            <strong>Session state</strong>
+                            <span>
+                                {% if prevention.quarantined %}
+                                Quarantined
+                                {% elif prevention.workflow_locked %}
+                                Workflow locked
+                                {% elif prevention.cooldown_seconds %}
+                                Cooldown: {{prevention.cooldown_seconds}} seconds
+                                {% else %}
+                                Blocked request
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="panel section-gap">
+                <h2>Expected Flow</h2>
+                <div class="workflow">
+                    {% for step in analysis.expected_flow %}
+                    <span class="workflow-step">{{step}}</span>
+                    {% if not loop.last %}<span class="workflow-arrow">-&gt;</span>{% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="panel section-gap">
+                <h2>Observed Flow</h2>
+                <div class="workflow">
+                    {% for step in analysis.observed_flow %}
+                    <span class="workflow-step {% if step == api_name %}workflow-danger{% endif %}">{{step}}</span>
+                    {% if not loop.last %}<span class="workflow-arrow">-&gt;</span>{% endif %}
+                    {% endfor %}
+                </div>
+                <p class="subtext">The highlighted request is where the sequence rule was evaluated and the request was blocked.</p>
+            </section>
+
+            <div class="action-row">
+                <a class="button" href="/">Start New Safe Session</a>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+
+</html>
