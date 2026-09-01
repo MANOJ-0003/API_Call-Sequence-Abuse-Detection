@@ -29,3 +29,15 @@ step-up-test,cart,Business-State Dependency Violation,Medium,64,Warning,88,1,202
 anonymous,debug,Honeypot API Probe,Critical,98,Block + Quarantine,60,1,2026-08-21 10:17:26.857640
 anonymous,debug,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,60,1,2026-08-21 10:20:43.453363
 anonymous,debug,Honeypot API Probe,Critical,98,Block + Quarantine,60,1,2026-08-21 10:55:08.935214
+heymay,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-08-22 10:17:33.218130
+heymay,checkout,Repeated Checkout Attempt,Medium,70,Adaptive Cooldown,63,2,2026-08-22 10:18:58.483050
+ngp,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-08-22 10:20:40.912017
+hello,checkout,Business-State Dependency Violation,High,86,Workflow Lock,75,1,2026-08-24 11:04:50.313408
+hello,products,Workflow Locked,High,78,Workflow Lock,50,2,2026-08-24 11:04:57.876327
+hello,add-to-cart,Workflow Locked,High,78,Block + Quarantine,25,3,2026-08-24 11:05:13.157305
+Mettilda,cart,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-08-24 11:16:54.392432
+manoj,checkout,Business-State Dependency Violation,High,86,Workflow Lock,75,1,2026-09-01 11:01:47.651706
+manoj,add-to-cart,Workflow Locked,High,78,Workflow Lock,50,2,2026-09-01 11:01:54.675813
+manoj,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-09-01 11:08:06.065530
+manoj,checkout,Repeated Checkout Attempt,Medium,70,Adaptive Cooldown,63,2,2026-09-01 11:08:36.391791
+manoj,checkout,Business-State Dependency Violation,High,86,Workflow Lock,75,1,2026-09-01 11:22:29.661634

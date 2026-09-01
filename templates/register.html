@@ -62,9 +62,9 @@
         {% endif %}
 
         <form action="/register" method="post">
-            <input type="text" name="user" placeholder="Create username" required>
-            <input type="email" name="email" placeholder="Email address" required>
-            <input type="password" name="password" placeholder="Create password" required>
+            <input type="text" name="user" placeholder="Create username" value="{{ user or '' }}" autocomplete="username" required>
+            <input type="email" name="email" placeholder="Email address" value="{{ email or '' }}" autocomplete="email" required>
+            <input type="password" name="password" placeholder="Create password" autocomplete="new-password" required>
             <button type="submit">Send Verification Code</button>
         </form>
 
@@ -73,6 +73,180 @@
         </div>
     </section>
 </main>
-</body>
 
+<!-- ░░░░░░░░░░ 3D ANIMATION CANVAS ░░░░░░░░░░ -->
+<canvas id="galaxy-bg"></canvas>
+
+<style>
+  #galaxy-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* push existing layout above the canvas */
+  main.auth-landing {
+    position: relative;
+    z-index: 1;
+  }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function() {
+  /* ── Scene ── */
+  const canvas   = document.getElementById('galaxy-bg');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setClearColor(0x000000, 0); // transparent – CSS body background shows through
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 90);
+
+  /* ── Particles (API nodes) ── */
+  const COUNT = 220;
+  const positions = new Float32Array(COUNT * 3);
+  const colors    = new Float32Array(COUNT * 3);
+  const speeds    = [];
+
+  const palette = [
+    new THREE.Color('#00e5ff'),
+    new THREE.Color('#7c4dff'),
+    new THREE.Color('#00bfa5'),
+    new THREE.Color('#ff5252'),
+    new THREE.Color('#ffffff'),
+  ];
+
+  for (let i = 0; i < COUNT; i++) {
+    const i3 = i * 3;
+    positions[i3]     = (Math.random() - 0.5) * 160;
+    positions[i3 + 1] = (Math.random() - 0.5) * 90;
+    positions[i3 + 2] = (Math.random() - 0.5) * 60;
+
+    const c = palette[Math.floor(Math.random() * palette.length)];
+    colors[i3]     = c.r;
+    colors[i3 + 1] = c.g;
+    colors[i3 + 2] = c.b;
+
+    speeds.push({
+      x: (Math.random() - 0.5) * 0.04,
+      y: (Math.random() - 0.5) * 0.025,
+      z: (Math.random() - 0.5) * 0.015,
+    });
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+
+  const mat = new THREE.ShaderMaterial({
+    vertexColors: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    uniforms: { uSize: { value: 5.5 * renderer.getPixelRatio() } },
+    vertexShader: `
+      uniform float uSize;
+      varying vec3 vColor;
+      void main() {
+        vColor = color;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = uSize * (120.0 / -mv.z);
+        gl_Position  = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      void main() {
+        float d = distance(gl_PointCoord, vec2(0.5));
+        if (d > 0.5) discard;
+        float a = 1.0 - smoothstep(0.2, 0.5, d);
+        gl_FragColor = vec4(vColor, a * 0.85);
+      }
+    `
+  });
+
+  const particles = new THREE.Points(geo, mat);
+  scene.add(particles);
+
+  /* ── Connection lines between nearby nodes ── */
+  const lineMat = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+    opacity: 0.35,
+  });
+  let linesMesh = null;
+  const CONNECT_DIST = 28;
+
+  function rebuildLines() {
+    if (linesMesh) { scene.remove(linesMesh); linesMesh.geometry.dispose(); }
+    const pts = geo.attributes.position.array;
+    const verts = [], vcols = [];
+    for (let a = 0; a < COUNT; a++) {
+      for (let b = a + 1; b < COUNT; b++) {
+        const ax = pts[a*3], ay = pts[a*3+1], az = pts[a*3+2];
+        const bx = pts[b*3], by = pts[b*3+1], bz = pts[b*3+2];
+        const dx = ax-bx, dy = ay-by, dz = az-bz;
+        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        if (dist < CONNECT_DIST) {
+          const fade = 1 - dist / CONNECT_DIST;
+          verts.push(ax,ay,az, bx,by,bz);
+          vcols.push(0, fade*0.9, fade, 0, fade*0.9, fade);
+        }
+      }
+    }
+    const lg = new THREE.BufferGeometry();
+    lg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verts), 3));
+    lg.setAttribute('color',    new THREE.BufferAttribute(new Float32Array(vcols), 3));
+    linesMesh = new THREE.LineSegments(lg, lineMat);
+    scene.add(linesMesh);
+  }
+
+  /* ── Animation loop ── */
+  let frame = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    frame++;
+
+    const pts = geo.attributes.position.array;
+    for (let i = 0; i < COUNT; i++) {
+      const i3 = i * 3;
+      pts[i3]     += speeds[i].x;
+      pts[i3 + 1] += speeds[i].y;
+      pts[i3 + 2] += speeds[i].z;
+      if (pts[i3]     >  80) pts[i3]     = -80;
+      if (pts[i3]     < -80) pts[i3]     =  80;
+      if (pts[i3 + 1] >  45) pts[i3 + 1] = -45;
+      if (pts[i3 + 1] < -45) pts[i3 + 1] =  45;
+      if (pts[i3 + 2] >  30) pts[i3 + 2] = -30;
+      if (pts[i3 + 2] < -30) pts[i3 + 2] =  30;
+    }
+    geo.attributes.position.needsUpdate = true;
+
+    if (frame % 4 === 0) rebuildLines();
+
+    camera.position.x = Math.sin(frame * 0.0006) * 12;
+    camera.position.y = Math.cos(frame * 0.0004) * 6;
+    camera.lookAt(scene.position);
+
+    renderer.render(scene, camera);
+  }
+
+  rebuildLines();
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+})();
+</script>
+
+</body>
 </html>

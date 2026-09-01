@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>API Sentinel Products</title>
+    <title>API Sentinel – Shop</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
@@ -17,21 +18,45 @@
             </div>
         </div>
         <nav class="side-nav">
-            <span class="active">User Flow</span>
-            <span>Products</span>
-            <span>Cart</span>
-            <span>Checkout</span>
+            <span class="active">🛍️ Products</span>
+            <a href="/cart?user={{user}}">🛒 Cart</a>
+            <a href="/checkout?user={{user}}">💳 Checkout</a>
+            <a href="/logout?user={{user}}" style="color:#f87171;">⬅️ Logout</a>
         </nav>
     </aside>
 
     <main class="main-panel">
         <header class="topbar">
             <div class="search-box">
-                <input type="text" value="Session: {{user}}" aria-label="Current session" readonly>
+                <input type="text" id="productSearch" placeholder="🔍  Search products…" oninput="filterProducts(this.value)" autocomplete="off">
             </div>
             <div class="top-actions">
-                <span>Normal Flow</span>
-                <div class="avatar">{{user[0]|upper}}</div>
+                <span class="status-chip status-low">Normal Flow</span>
+                <!-- Profile Dropdown -->
+                <div class="profile-dropdown-container">
+                    <button class="profile-trigger" id="profileTrigger" onclick="toggleProfileDropdown(event)" aria-label="Account Profile">
+                        <div class="avatar">{{user[0]|upper if user else 'U'}}</div>
+                        <span class="profile-name">{{user}}</span>
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="avatar-lg">{{user[0]|upper if user else 'U'}}</div>
+                            <div class="profile-info">
+                                <strong class="profile-username">{{user}}</strong>
+                                <span class="profile-role">Registered User</span>
+                                <span class="profile-status">● Active Session</span>
+                            </div>
+                        </div>
+                        <div class="profile-dropdown-divider"></div>
+                        <div class="profile-dropdown-links">
+                            <a href="/cart?user={{user}}" class="profile-dropdown-item">🛒 View Cart</a>
+                            <a href="/checkout?user={{user}}" class="profile-dropdown-item">💳 Checkout</a>
+                        </div>
+                        <div class="profile-dropdown-divider"></div>
+                        <a href="/logout?user={{user}}" class="profile-dropdown-item logout-item">⬅️ Logout ({{user}})</a>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -39,49 +64,195 @@
             <div class="page-header">
                 <div>
                     <p class="eyebrow">Protected Commerce APIs</p>
-                    <h1>Welcome {{user}}</h1>
-                    <p class="subtext">Follow the expected sequence so the detector sees login, products, cart, checkout, and payment in order.</p>
+                    <h1>Welcome, {{user}} 👋</h1>
+                    <p class="subtext">Hover a card to flip it. Set your quantity, then click <strong>Add to Cart</strong>.</p>
                 </div>
                 <div class="action-row compact-actions">
-                    <a class="button button-secondary" href="/cart?user={{user}}">View Cart</a>
-                    <a class="button button-secondary" href="/checkout?user={{user}}">Go to Checkout</a>
+                    <a class="button button-secondary" href="/cart?user={{user}}">🛒 View Cart</a>
+                    <a class="button button-secondary" href="/checkout?user={{user}}">💳 Checkout</a>
+                    <a class="button" href="/logout?user={{user}}" style="background:var(--navy);">Logout</a>
                 </div>
             </div>
 
-            <div class="panel">
-                <h2>Expected User Journey</h2>
+            <!-- Category filter pills -->
+            <div class="cat-pills" id="catPills">
+                <button class="cat-pill active" onclick="filterCategory('all', this)">All</button>
+                <button class="cat-pill" onclick="filterCategory('Smartphone', this)">📱 Smartphones</button>
+                <button class="cat-pill" onclick="filterCategory('Laptop', this)">💻 Laptops</button>
+                <button class="cat-pill" onclick="filterCategory('Tablet', this)">📟 Tablets</button>
+                <button class="cat-pill" onclick="filterCategory('Audio', this)">🎧 Audio</button>
+                <button class="cat-pill" onclick="filterCategory('Smartwatch', this)">⌚ Wearables</button>
+                <button class="cat-pill" onclick="filterCategory('Accessory', this)">🖱️ Accessories</button>
+                <button class="cat-pill" onclick="filterCategory('TV', this)">📺 TVs</button>
+            </div>
+
+            <!-- Workflow steps -->
+            <div class="panel" style="margin-bottom:20px;">
                 <div class="workflow">
-                    <span class="workflow-step">Login</span>
-                    <span class="workflow-arrow">-&gt;</span>
-                    <span class="workflow-step">Products</span>
-                    <span class="workflow-arrow">-&gt;</span>
-                    <span class="workflow-step">Add to Cart</span>
-                    <span class="workflow-arrow">-&gt;</span>
-                    <span class="workflow-step">Checkout</span>
-                    <span class="workflow-arrow">-&gt;</span>
+                    <span class="workflow-step">Login</span><span class="workflow-arrow">→</span>
+                    <span class="workflow-step" style="background:rgba(0,173,181,.28);border:2px solid var(--teal);">Products</span><span class="workflow-arrow">→</span>
+                    <span class="workflow-step">Add to Cart</span><span class="workflow-arrow">→</span>
+                    <span class="workflow-step">Checkout</span><span class="workflow-arrow">→</span>
                     <span class="workflow-step">Payment</span>
                 </div>
             </div>
 
-            <div class="products-grid">
+            <!-- Product grid -->
+            <div class="products-grid" id="productsGrid">
                 {% for product in products %}
-                <article class="product-card">
-                    {% if product.is_external_img %}
-                    <img src="{{ product.img }}" class="product-img" alt="{{product.name}}">
-                    {% else %}
-                    <img src="{{ url_for('static', filename=product.img) }}" class="product-img" alt="{{product.name}}">
-                    {% endif %}
-                    <div class="product-body">
-                        <h3>{{product.name}}</h3>
-                        <p class="price">Rs. {{product.price}}</p>
-                        <a class="button" href="/add-to-cart?user={{user}}&item={{product.name}}">Add to Cart</a>
-                    </div>
-                </article>
+                <div class="product-scene" data-category="{{ product.category }}" data-name="{{ product.name|lower }}">
+                    <article class="product-card-3d">
+
+                        <!-- FRONT FACE -->
+                        <div class="card-face card-front">
+                            <div class="product-img-wrap">
+                                {% if product.badge %}
+                                <span class="product-badge">{{ product.badge }}</span>
+                                {% endif %}
+                                <span class="product-cat-label">{{ product.category }}</span>
+                                {% if product.is_external_img %}
+                                <img src="{{ product.img }}" class="product-img" alt="{{product.name}}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=600&q=80';">
+                                {% else %}
+                                <img src="{{ url_for('static', filename=product.img) }}" class="product-img" alt="{{product.name}}" loading="lazy">
+                                {% endif %}
+                            </div>
+                            <div class="product-body">
+                                <h3>{{product.name}}</h3>
+                                <p class="price">₹ {{ "{:,}".format(product.price) }}</p>
+                                <p class="flip-hint">↩ Hover to customize & add →</p>
+                            </div>
+                        </div>
+
+                        <!-- BACK FACE -->
+                        <div class="card-face card-back">
+                            <div class="card-back-inner">
+                                <div class="back-icon">🛍️</div>
+                                <h3>{{ product.name }}</h3>
+                                <p class="price" style="margin:4px 0 18px;">₹ {{ "{:,}".format(product.price) }}</p>
+
+                                <!-- Quantity stepper -->
+                                <div class="qty-row">
+                                    <span class="qty-label">Quantity</span>
+                                    <div class="qty-stepper">
+                                        <button type="button" class="qty-btn" onclick="changeQty(this, -1)" aria-label="Decrease">−</button>
+                                        <span class="qty-val">1</span>
+                                        <button type="button" class="qty-btn" onclick="changeQty(this, 1)" aria-label="Increase">+</button>
+                                    </div>
+                                </div>
+
+                                <div class="qty-subtotal">
+                                    Subtotal: <strong class="qty-total-val">₹ {{ "{:,}".format(product.price) }}</strong>
+                                </div>
+
+                                <a class="button atc-btn"
+                                   href="/add-to-cart?user={{user}}&item={{ product.name | urlencode }}&qty=1"
+                                   data-price="{{ product.price }}"
+                                   data-base-url="/add-to-cart?user={{user}}&item={{ product.name | urlencode }}"
+                                   onclick="animateAddToCart(this, event)">
+                                    🛒 Add to Cart
+                                </a>
+                                <a class="button button-secondary" href="/products?user={{user}}" style="margin-top:8px;width:100%;justify-content:center;">
+                                    ← Keep Shopping
+                                </a>
+                            </div>
+                        </div>
+
+                    </article>
+                </div>
                 {% endfor %}
             </div>
+
+            <!-- No results state -->
+            <div class="empty-state" id="noResults" style="display:none;">
+                <h3>No products found</h3>
+                <p class="subtext">Try a different category or clear the search.</p>
+            </div>
+
         </section>
     </main>
 </div>
-</body>
 
+<!-- Add-to-cart fly animation bubble -->
+<div class="fly-bubble" id="flyBubble">🛒</div>
+
+<script>
+/* ── Profile dropdown ── */
+function toggleProfileDropdown(e) {
+    e.stopPropagation();
+    const d = document.getElementById('profileDropdown');
+    const t = document.getElementById('profileTrigger');
+    if (d) { d.classList.toggle('show'); if (t) t.classList.toggle('active'); }
+}
+document.addEventListener('click', function(e) {
+    const d = document.getElementById('profileDropdown');
+    const t = document.getElementById('profileTrigger');
+    if (d && d.classList.contains('show') && !d.contains(e.target) && !t.contains(e.target)) {
+        d.classList.remove('show'); if (t) t.classList.remove('active');
+    }
+});
+
+/* ── Quantity stepper ── */
+function changeQty(btn, delta) {
+    const stepper = btn.closest('.qty-stepper');
+    const valEl   = stepper.querySelector('.qty-val');
+    const card     = btn.closest('.card-back-inner');
+    const atcLink  = card.querySelector('.atc-btn');
+    const totalEl  = card.querySelector('.qty-total-val');
+    const price    = parseInt(atcLink.dataset.price, 10);
+    const baseUrl  = atcLink.dataset.baseUrl;
+
+    let qty = parseInt(valEl.textContent, 10) + delta;
+    qty = Math.max(1, Math.min(10, qty));
+    valEl.textContent = qty;
+
+    const sub = price * qty;
+    totalEl.textContent = '₹ ' + sub.toLocaleString('en-IN');
+    atcLink.href = baseUrl + '&qty=' + qty;
+
+    /* pulse the stepper value */
+    valEl.classList.remove('qty-pulse');
+    void valEl.offsetWidth;
+    valEl.classList.add('qty-pulse');
+}
+
+/* ── Flying cart animation ── */
+function animateAddToCart(link, e) {
+    e.preventDefault();
+    const bubble = document.getElementById('flyBubble');
+    const rect   = link.getBoundingClientRect();
+    bubble.style.left = rect.left + rect.width / 2 + 'px';
+    bubble.style.top  = rect.top  + rect.height / 2 + 'px';
+    bubble.classList.add('fly-active');
+    setTimeout(() => {
+        bubble.classList.remove('fly-active');
+        window.location.href = link.href;
+    }, 700);
+}
+
+/* ── Category filter ── */
+function filterCategory(cat, pill) {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    document.querySelectorAll('.product-scene').forEach(s => {
+        s.style.display = (cat === 'all' || s.dataset.category === cat) ? '' : 'none';
+    });
+    checkEmpty();
+}
+
+/* ── Search filter ── */
+function filterProducts(q) {
+    const lq = q.toLowerCase().trim();
+    document.querySelectorAll('.product-scene').forEach(s => {
+        const visible = !lq || s.dataset.name.includes(lq);
+        s.style.display = visible ? '' : 'none';
+    });
+    checkEmpty();
+}
+
+function checkEmpty() {
+    const any = [...document.querySelectorAll('.product-scene')].some(s => s.style.display !== 'none');
+    document.getElementById('noResults').style.display = any ? 'none' : 'block';
+}
+</script>
+</body>
 </html>

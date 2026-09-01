@@ -1,25 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>API Sentinel Payment</title>
+    <title>API Sentinel – Payment Successful</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
-<main class="auth-page">
-    <section class="confirmation-card">
-        <div class="confirmation-icon">OK</div>
-        <p class="eyebrow">Workflow Complete</p>
-        <h1>Payment Successful</h1>
-        <h2>Thank you {{user}}</h2>
-        <p class="subtext">The demo session completed the expected API sequence and reset tracking for the next run.</p>
-        <div class="action-row">
-            <a class="button" href="/products?user={{user}}">Continue Monitoring</a>
-            <a class="button button-secondary" href="/">End User Session</a>
+<main class="auth-page success-scene">
+
+    <!-- Confetti particles (pure CSS) -->
+    <div class="confetti-wrap" id="confetti"></div>
+
+    <section class="success-card">
+
+        <!-- 3-D rotating coin/package -->
+        <div class="success-3d-wrap">
+            <div class="success-cube">
+                <div class="cube-face cube-front">✅</div>
+                <div class="cube-face cube-back">💳</div>
+                <div class="cube-face cube-top">🎉</div>
+                <div class="cube-face cube-bottom">📦</div>
+                <div class="cube-face cube-left">⭐</div>
+                <div class="cube-face cube-right">🛍️</div>
+            </div>
+        </div>
+
+        <p class="eyebrow" style="text-align:center;margin-top:24px;">Workflow Complete</p>
+        <h1 class="success-title">Payment Successful!</h1>
+        <h2 class="success-sub">Thank you, <span class="highlight">{{user}}</span> 🎊</h2>
+        <p class="subtext" style="text-align:center;">
+            Your order has been placed and the API sequence completed successfully.<br>
+            All workflow steps were recorded in the expected order.
+        </p>
+
+        <!-- animated order summary strip -->
+        <div class="success-steps">
+            <div class="ss-step done">
+                <span class="ss-icon">🔐</span>
+                <span>Login</span>
+            </div>
+            <div class="ss-arrow">→</div>
+            <div class="ss-step done">
+                <span class="ss-icon">🛍️</span>
+                <span>Products</span>
+            </div>
+            <div class="ss-arrow">→</div>
+            <div class="ss-step done">
+                <span class="ss-icon">🛒</span>
+                <span>Cart</span>
+            </div>
+            <div class="ss-arrow">→</div>
+            <div class="ss-step done">
+                <span class="ss-icon">📋</span>
+                <span>Checkout</span>
+            </div>
+            <div class="ss-arrow">→</div>
+            <div class="ss-step done pulse-step">
+                <span class="ss-icon">💸</span>
+                <span>Paid</span>
+            </div>
+        </div>
+
+        <div class="action-row" style="margin-top:28px;">
+            <a class="button" href="/products?user={{user}}">🛍️ Shop Again</a>
+            <a class="button button-secondary" href="/logout?user={{user}}">⬅️ Logout</a>
         </div>
     </section>
 </main>
-</body>
 
+<script>
+/* Generate CSS-animated confetti pieces */
+(function spawnConfetti() {
+    const wrap  = document.getElementById('confetti');
+    const colors = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#00adb5'];
+    const shapes = ['confetti-rect','confetti-circle','confetti-tri'];
+    for (let i = 0; i < 80; i++) {
+        const el = document.createElement('div');
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        el.className = 'confetti-piece ' + shape;
+        el.style.cssText = [
+            `left:${Math.random() * 100}vw`,
+            `animation-delay:${(Math.random() * 2).toFixed(2)}s`,
+            `animation-duration:${(2.5 + Math.random() * 2).toFixed(2)}s`,
+            `background:${colors[Math.floor(Math.random() * colors.length)]}`,
+            `width:${6 + Math.floor(Math.random() * 8)}px`,
+            `height:${6 + Math.floor(Math.random() * 12)}px`,
+            `opacity:${0.7 + Math.random() * 0.3}`
+        ].join(';');
+        wrap.appendChild(el);
+    }
+})();
+</script>
+</body>
 </html>

@@ -21,6 +21,7 @@ cart = {}
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "chingu@325"
 registered_users = {}
+registered_emails = {}   # username -> email address
 USER_STORE = "users.csv"
 pending_registrations = {}
 OTP_EXPIRY_MINUTES = 10
@@ -57,6 +58,8 @@ def load_registered_users():
         for row in reader:
             if len(row) >= 2:
                 registered_users[row[0]] = row[1]
+            if len(row) >= 3 and row[2].strip():
+                registered_emails[row[0]] = row[2].strip()
 
 
 def save_registered_user(user, password, email="", phone=""):
@@ -65,27 +68,174 @@ def save_registered_user(user, password, email="", phone=""):
         writer.writerow([user, password, email, phone])
 
 
+def load_env_file(filepath=".env"):
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip("'\"")
+                if k and k not in os.environ:
+                    os.environ[k] = v
+
+load_env_file()
+
+
 def send_verification_otp(email, otp):
-    """Send email only when SMTP is configured; otherwise use safe local-demo delivery."""
+    """Send email when SMTP is configured; return True if sent, False if fallback to local delivery."""
     smtp_host = os.getenv("SMTP_HOST")
     sender = os.getenv("SMTP_FROM")
     if not smtp_host or not sender:
+        print(f"\n[API Sentinel DEMO] Email verification code for {email}: {otp}\n", flush=True)
         return False
 
     message = EmailMessage()
-    message["Subject"] = "API Sentinel email verification"
+    message["Subject"] = f"API Sentinel – Verification Code: {otp}"
     message["From"] = sender
     message["To"] = email
     message.set_content(f"Your API Sentinel verification code is: {otp}. It expires in {OTP_EXPIRY_MINUTES} minutes.")
+    message.add_alternative(
+        f"""\
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; margin: 0; padding: 0; }}
+    .wrapper {{ max-width: 500px; margin: 30px auto; background: #1e293b; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }}
+    .header {{ background: linear-gradient(135deg, #00adb5, #6366f1); padding: 24px 30px; text-align: center; }}
+    .header h1 {{ color: #ffffff; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.5px; }}
+    .content {{ padding: 30px; text-align: center; color: #cbd5e1; }}
+    .content h2 {{ color: #f8fafc; font-size: 18px; margin-top: 0; }}
+    .otp-box {{ margin: 24px auto; padding: 18px 24px; background: #0f172a; border: 2px dashed #00adb5; border-radius: 12px; display: inline-block; }}
+    .otp-code {{ font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #38bdf8; margin: 0; font-family: monospace; }}
+    .subtext {{ color: #94a3b8; font-size: 13px; margin-top: 16px; }}
+    .footer {{ background: #0f172a; padding: 16px; text-align: center; color: #64748b; font-size: 12px; }}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>🛡️ API Sentinel</h1>
+    </div>
+    <div class="content">
+      <h2>Verify Your Email Address</h2>
+      <p>Enter the 6-digit confirmation code below to activate your API Sentinel account:</p>
+      <div class="otp-box">
+        <p class="otp-code">{otp}</p>
+      </div>
+      <p class="subtext">This code will expire in <strong>{OTP_EXPIRY_MINUTES} minutes</strong>.<br>If you did not request this code, please ignore this email.</p>
+    </div>
+    <div class="footer">API Sentinel Security System • Automated Message</div>
+  </div>
+</body>
+</html>
+""",
+        subtype="html"
+    )
     try:
         with smtplib.SMTP(smtp_host, int(os.getenv("SMTP_PORT", "587")), timeout=10) as smtp:
             if os.getenv("SMTP_USE_TLS", "true").lower() == "true":
                 smtp.starttls()
             if os.getenv("SMTP_USERNAME"):
-                smtp.login(os.getenv("SMTP_USERNAME"), os.getenv("SMTP_PASSWORD", ""))
+                smtp_pass = os.getenv("SMTP_PASSWORD", "").replace(" ", "").strip()
+                smtp.login(os.getenv("SMTP_USERNAME"), smtp_pass)
             smtp.send_message(message)
         return True
-    except (OSError, smtplib.SMTPException):
+    except (OSError, smtplib.SMTPException) as e:
+        print(f"\n[API Sentinel DEMO] SMTP error ({e}). Fallback verification code for {email}: {otp}\n", flush=True)
+        return False
+
+
+def send_login_email(user, email):
+    """Send a login-notification email to the authenticated user."""
+    smtp_host = os.getenv("SMTP_HOST")
+    sender = os.getenv("SMTP_FROM")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ip_addr = request.remote_addr or "unknown"
+
+    if not smtp_host or not sender:
+        print(f"\n[API Sentinel DEMO] Login notification for {user} ({email}) at {now} from IP {ip_addr}\n", flush=True)
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = "API Sentinel – New Login Detected"
+    message["From"] = sender
+    message["To"] = email
+    message.set_content(
+        f"Hello {user},\n\n"
+        f"A new login to your API Sentinel account was detected.\n\n"
+        f"  Time  : {now}\n"
+        f"  IP    : {ip_addr}\n\n"
+        f"If this was you, no action is needed.\n"
+        f"If you did not log in, please change your password immediately.\n\n"
+        f"-- API Sentinel Security Team"
+    )
+    message.add_alternative(
+        f"""\
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; margin: 0; padding: 0; }}
+    .wrapper {{ max-width: 520px; margin: 40px auto; background: #1e293b; border-radius: 12px;
+                overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.5); }}
+    .header {{ background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 28px 32px; }}
+    .header h1 {{ color: #fff; margin: 0; font-size: 20px; letter-spacing: .5px; }}
+    .header p  {{ color: rgba(255,255,255,.75); margin: 4px 0 0; font-size: 13px; }}
+    .body {{ padding: 28px 32px; color: #cbd5e1; font-size: 15px; line-height: 1.6; }}
+    .body h2 {{ color: #f1f5f9; font-size: 17px; margin: 0 0 16px; }}
+    .info-box {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+                 padding: 16px 20px; margin: 20px 0; }}
+    .info-box table {{ width: 100%; border-collapse: collapse; }}
+    .info-box td {{ padding: 6px 0; font-size: 14px; }}
+    .info-box td:first-child {{ color: #94a3b8; width: 80px; }}
+    .info-box td:last-child  {{ color: #f1f5f9; font-weight: 600; }}
+    .alert {{ color: #fbbf24; font-size: 13px; margin-top: 16px; }}
+    .footer {{ background: #0f172a; padding: 16px 32px; text-align: center;
+               color: #475569; font-size: 12px; }}
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>&#128274; API Sentinel</h1>
+    <p>Security Notification</p>
+  </div>
+  <div class="body">
+    <h2>New Login Detected</h2>
+    <p>Hi <strong>{user}</strong>, a new login was recorded for your account.</p>
+    <div class="info-box">
+      <table>
+        <tr><td>User</td><td>{user}</td></tr>
+        <tr><td>Time</td><td>{now}</td></tr>
+        <tr><td>IP</td><td>{ip_addr}</td></tr>
+      </table>
+    </div>
+    <p>If this was you, no action is needed.</p>
+    <p class="alert">&#9888;&#65039; If you did NOT log in, change your password immediately.</p>
+  </div>
+  <div class="footer">API Sentinel &bull; Automated Security Alert &bull; Do not reply</div>
+</div>
+</body>
+</html>""",
+        subtype="html"
+    )
+    try:
+        with smtplib.SMTP(smtp_host, int(os.getenv("SMTP_PORT", "587")), timeout=10) as smtp:
+            if os.getenv("SMTP_USE_TLS", "true").lower() == "true":
+                smtp.starttls()
+            if os.getenv("SMTP_USERNAME"):
+                smtp_pass = os.getenv("SMTP_PASSWORD", "").replace(" ", "").strip()
+                smtp.login(os.getenv("SMTP_USERNAME"), smtp_pass)
+            smtp.send_message(message)
+        return True
+    except (OSError, smtplib.SMTPException) as exc:
+        print(f"\n[API Sentinel DEMO] SMTP error ({exc}). Login notification for {user} not sent.\n", flush=True)
         return False
 
 
@@ -116,16 +266,132 @@ load_registered_users()
 
 # Product database
 products_list = {
+    # ── Smartphones ──
     "iPhone 17 Pro Max": {
-        "price": 10000,
-        "img": "https://www.jbhifi.com.au/cdn/shop/files/816125-Product-0-I-638930470802768402_1024x1024.jpg"
+        "price": 149900,
+        "img": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80",
+        "category": "Smartphone",
+        "badge": "New"
     },
-    "Phone": {"price": 20000, "img": "images/phone.jpg"},
-    "Laptop": {"price": 50000, "img": "images/laptop.jpg"},
-    "Tablet": {"price": 15000, "img": "images/tablet.jpg"},
-    "Headphones": {"price": 4500, "img": "images/headphones.png"},
-    "Smartwatch": {"price": 8500, "img": "images/smartwatch.png"},
-    "Earbuds": {"price": 3000, "img": "images/earbuds.png"}
+    "Samsung Galaxy S25 Ultra": {
+        "price": 129900,
+        "img": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=600&q=80",
+        "category": "Smartphone",
+        "badge": "Hot"
+    },
+    "OnePlus 13": {
+        "price": 69999,
+        "img": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80",
+        "category": "Smartphone",
+        "badge": None
+    },
+    # ── Laptops ──
+    "MacBook Pro M4": {
+        "price": 199900,
+        "img": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80",
+        "category": "Laptop",
+        "badge": "Best Seller"
+    },
+    "Dell XPS 15": {
+        "price": 159900,
+        "img": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=600&q=80",
+        "category": "Laptop",
+        "badge": None
+    },
+    "ASUS ROG Zephyrus G16": {
+        "price": 179900,
+        "img": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=600&q=80",
+        "category": "Laptop",
+        "badge": "Gaming"
+    },
+    # ── Tablets ──
+    "iPad Pro M4": {
+        "price": 109900,
+        "img": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80",
+        "category": "Tablet",
+        "badge": "New"
+    },
+    "Samsung Galaxy Tab S10": {
+        "price": 79900,
+        "img": "https://images.unsplash.com/photo-1561154464-82e9adf32764?auto=format&fit=crop&w=600&q=80",
+        "category": "Tablet",
+        "badge": None
+    },
+    # ── Audio ──
+    "AirPods Pro 3": {
+        "price": 29900,
+        "img": "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=600&q=80",
+        "category": "Audio",
+        "badge": "New"
+    },
+    "Sony WH-1000XM6": {
+        "price": 34990,
+        "img": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
+        "category": "Audio",
+        "badge": "Top Rated"
+    },
+    "JBL Charge 6": {
+        "price": 14999,
+        "img": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=600&q=80",
+        "category": "Audio",
+        "badge": None
+    },
+    "Bose QuietComfort 45": {
+        "price": 26900,
+        "img": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+        "category": "Audio",
+        "badge": None
+    },
+    # ── Wearables ──
+    "Apple Watch Ultra 3": {
+        "price": 89900,
+        "img": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80",
+        "category": "Smartwatch",
+        "badge": "Premium"
+    },
+    "Samsung Galaxy Watch 7": {
+        "price": 34999,
+        "img": "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=600&q=80",
+        "category": "Smartwatch",
+        "badge": None
+    },
+    "Fitbit Sense 3": {
+        "price": 19999,
+        "img": "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?auto=format&fit=crop&w=600&q=80",
+        "category": "Smartwatch",
+        "badge": None
+    },
+    # ── Accessories ──
+    "Logitech MX Master 3S": {
+        "price": 11995,
+        "img": "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80",
+        "category": "Accessory",
+        "badge": None
+    },
+    "Keychron Q5 Pro": {
+        "price": 19990,
+        "img": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80",
+        "category": "Accessory",
+        "badge": "Trending"
+    },
+    "Anker USB-C Hub 12-in-1": {
+        "price": 5999,
+        "img": "https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=600&q=80",
+        "category": "Accessory",
+        "badge": None
+    },
+    "Logitech C930e Webcam": {
+        "price": 9499,
+        "img": "https://images.unsplash.com/photo-1588508065123-287b28e013da?auto=format&fit=crop&w=600&q=80",
+        "category": "Accessory",
+        "badge": None
+    },
+    "Samsung 65\" QLED 4K TV": {
+        "price": 129990,
+        "img": "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=600&q=80",
+        "category": "TV",
+        "badge": "Deal"
+    },
 }
 
 
@@ -289,6 +555,11 @@ def login():
     log_user_activity(user, "login", "User workflow access", "user")
     cart[user] = []
 
+    # Send login-notification email if the user has a registered email address
+    user_email = registered_emails.get(user)
+    if user_email:
+        send_login_email(user, user_email)
+
     return redirect("/products?user=" + user)
 
 
@@ -296,7 +567,7 @@ def login():
 def register():
 
     if request.method == "GET":
-        return render_template("register.html", error=None)
+        return render_template("register.html", error=None, user="", email="")
 
     user = request.form.get("user", "").strip()
     password = request.form.get("password", "")
@@ -306,41 +577,47 @@ def register():
         return render_template(
             "register.html",
             error="Enter a username, email address, and password to register.",
+            user=user,
+            email=email
         )
 
     if "@" not in email or email.startswith("@") or email.endswith("@"):
-        return render_template("register.html", error="Enter a valid email address.")
+        return render_template("register.html", error="Enter a valid email address.", user=user, email=email)
 
     if user == ADMIN_USERNAME:
         return render_template(
             "register.html",
             error="This username is reserved for the administrator.",
+            user=user,
+            email=email
         )
 
     if user in registered_users:
         return render_template(
             "register.html",
             error="User already registered. Please login.",
+            user=user,
+            email=email
         )
 
     email_otp = f"{secrets.randbelow(1_000_000):06d}"
+    email_delivered = send_verification_otp(email, email_otp)
+    demo_otp = None if email_delivered else email_otp
+
     pending_registrations[user] = {
         "password": password,
         "email": email,
         "email_otp": email_otp,
+        "demo_otp": demo_otp,
+        "email_delivered": email_delivered,
         "expires_at": datetime.now() + timedelta(minutes=OTP_EXPIRY_MINUTES),
     }
-    email_delivered = send_verification_otp(email, email_otp)
-    if not email_delivered:
-        pending_registrations.pop(user, None)
-        log_user_activity(user, "register", "OTP delivery unavailable", "user")
-        return render_template(
-            "register.html",
-            error="Unable to send the email verification code. Configure the email delivery service, then try again.",
-        )
-    log_user_activity(user, "register", "Email verification pending", "user")
+    
+    activity_msg = "Email verification sent" if email_delivered else "Email verification pending (local demo delivery)"
+    log_user_activity(user, "register", activity_msg, "user")
 
     return render_template("verify_email.html", user=user, email=email,
+                           demo_otp=demo_otp, email_delivered=email_delivered,
                            error=None)
 
 
@@ -351,15 +628,19 @@ def verify_email():
     pending = pending_registrations.get(user)
 
     if not pending:
-        return render_template("register.html", error="Verification session expired. Register again.")
+        return render_template("register.html", error="Verification session expired or not found. Please register again.")
     if datetime.now() > pending["expires_at"]:
         pending_registrations.pop(user, None)
-        return render_template("register.html", error="Verification code expired. Register again.")
+        return render_template("register.html", error="Verification code expired. Please register again.")
     if not secrets.compare_digest(email_otp, pending["email_otp"]):
         return render_template("verify_email.html", user=user, email=pending["email"],
-                               error="Email verification code is invalid.")
+                               demo_otp=pending.get("demo_otp"),
+                               email_delivered=pending.get("email_delivered", False),
+                               error="Email verification code is invalid. Please try again.")
 
     registered_users[user] = pending["password"]
+    if pending["email"]:
+        registered_emails[user] = pending["email"]
     save_registered_user(user, pending["password"], pending["email"])
     pending_registrations.pop(user, None)
     log_user_activity(user, "email-verification", "Email verified; account activated", "user")
@@ -367,7 +648,7 @@ def verify_email():
     return render_template(
         "login.html",
         error=None,
-        success="Email verified successfully. Login with your username and password."
+        success=f"Account created successfully for '{user}'. You can now log in."
     )
 
 
@@ -400,11 +681,14 @@ def products():
     products = []
 
     for name in products_list:
-        product_img = products_list[name]["img"]
+        pdata = products_list[name]
+        product_img = pdata["img"]
         products.append({
             "name": name,
-            "price": products_list[name]["price"],
+            "price": pdata["price"],
             "img": product_img,
+            "category": pdata.get("category", ""),
+            "badge": pdata.get("badge"),
             "is_external_img": product_img.startswith("http://") or product_img.startswith("https://")
         })
 
@@ -417,6 +701,7 @@ def add_to_cart():
 
     user = request.args.get("user")
     item = request.args.get("item")
+    qty = max(1, min(10, int(request.args.get("qty", 1) or 1)))
 
     response = process_request(user, "add-to-cart")
     if response:
@@ -455,15 +740,17 @@ def add_to_cart():
     if user not in cart:
         cart[user] = []
 
-    cart[user].append(product)
+    for _ in range(qty):
+        cart[user].append(product)
 
     items = cart.get(user, [])
-    total = sum(item["price"] for item in items)
+    total = sum(i["price"] for i in items)
 
     return render_template(
         "cart.html",
         user=user,
         item=product,
+        qty=qty,
         items=items,
         total=total,
         item_count=len(items)
@@ -530,16 +817,12 @@ def pay():
 @app.route("/logout")
 def logout():
 
-    user = request.args.get("user")
-
-    response = process_request(user, "logout")
-    if response:
-        return response
+    user = request.args.get("user") or session.get("authenticated_user") or "anonymous"
 
     reset_sequence(user)
     reset_user_state(user)
     cart.pop(user, None)
-    session.pop("authenticated_user", None)
+    session.clear()
     log_user_activity(user, "logout", "User logged out", "user")
 
     return redirect("/")
@@ -785,4 +1068,4 @@ def simulate_attacks():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)

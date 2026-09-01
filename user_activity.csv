@@ -81,3 +81,33 @@ email-only-test,user,register,Email verification pending,2026-08-21 11:33:41.639
 email-only-test,user,email-verification,Email verified; account activated,2026-08-21 11:33:41.644247
 email-only-test,user,login,User workflow access,2026-08-21 11:33:41.647254
 hello,user,login,User workflow access,2026-08-21 11:45:01.854987
+heymay,user,register,Email verification pending (local demo delivery),2026-08-22 10:09:44.496447
+heymay,user,email-verification,Email verified; account activated,2026-08-22 10:10:06.372750
+heymay,user,login,User workflow access,2026-08-22 10:10:15.574497
+heymay,user,login,User workflow access,2026-08-22 10:18:00.697529
+ngp,user,register,Email verification pending (local demo delivery),2026-08-22 10:20:02.000478
+ngp,user,email-verification,Email verified; account activated,2026-08-22 10:20:17.943238
+ngp,user,login,User workflow access,2026-08-22 10:20:27.132317
+ngp,user,payment,Workflow completed,2026-08-22 10:20:38.238392
+hello,user,login,User workflow access,2026-08-24 11:04:23.905057
+hello,user,logout,User logged out,2026-08-24 11:05:47.827235
+admin,admin,login,Invalid admin password,2026-08-24 11:06:00.768219
+admin,admin,login,Admin dashboard access,2026-08-24 11:06:15.042744
+admin,admin,logout,Admin logged out,2026-08-24 11:07:24.611477
+Mettilda,user,register,Email verification pending (local demo delivery),2026-08-24 11:14:48.114402
+Mettilda,user,email-verification,Email verified; account activated,2026-08-24 11:15:10.189334
+Mettilda,user,login,User workflow access,2026-08-24 11:15:38.925770
+Mettilda,user,payment,Workflow completed,2026-08-24 11:16:28.250917
+manoj,user,login,User workflow access,2026-09-01 11:01:24.661225
+manoj,user,login,User workflow access,2026-09-01 11:08:15.720293
+manojsekar06@gmail.com,user,register,Email verification pending (local demo delivery),2026-09-01 11:11:35.889440
+manojsekar06@gmail.com,user,register,Email verification sent,2026-09-01 11:16:15.331478
+manojsekar06@gmail.com,user,email-verification,Email verified; account activated,2026-09-01 11:16:38.253859
+manoj,user,login,User workflow access,2026-09-01 11:16:41.416971
+manoj,user,logout,User logged out,2026-09-01 11:16:45.307819
+spiderman,user,login,User not registered,2026-09-01 11:17:53.896520
+manoj0003823@gmail.com,user,register,Email verification sent,2026-09-01 11:19:29.061544
+manoj0003823@gmail.com,user,register,Email verification sent,2026-09-01 11:19:31.756790
+manoj0003823@gmail.com,user,email-verification,Email verified; account activated,2026-09-01 11:19:57.871719
+manoj,user,login,User workflow access,2026-09-01 11:20:05.479075
+admin,admin,login,Admin dashboard access,2026-09-01 11:22:52.769050

@@ -909,3 +909,689 @@ button:hover,
         font-size: 26px;
     }
 }
+
+/* ==========================================================================
+   Profile Dropdown Menu Component
+   ========================================================================== */
+.profile-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 8px;
+    background: #f1f5f9;
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text);
+}
+
+.profile-trigger:hover,
+.profile-trigger.active {
+    background: #e2e8f0;
+    border-color: var(--teal);
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.profile-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdown-arrow {
+    color: var(--muted);
+    transition: transform 0.2s ease;
+}
+
+.profile-trigger.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.profile-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    width: 250px;
+    background: var(--white);
+    border: 1px solid rgba(217, 222, 229, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    padding: 14px;
+    z-index: 1000;
+    display: none;
+    animation: dropdownFadeIn 0.2s ease forwards;
+}
+
+.profile-dropdown-menu.show {
+    display: block;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 4px 12px 4px;
+}
+
+.avatar-lg {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    color: var(--white);
+    font-size: 20px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    flex-shrink: 0;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.profile-username {
+    font-size: 15px;
+    color: var(--navy);
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-role {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1px;
+}
+
+.profile-status {
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.profile-dropdown-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 8px 0;
+}
+
+.profile-dropdown-links {
+    display: grid;
+    gap: 4px;
+}
+
+.profile-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.profile-dropdown-item:hover {
+    background: rgba(0, 173, 181, 0.12);
+    color: var(--teal-dark);
+}
+
+.profile-dropdown-item.logout-item {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.profile-dropdown-item.logout-item:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3-D PRODUCT CARDS  +  QUANTITY STEPPER  +  CATEGORY PILLS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Category filter pills ── */
+.cat-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.cat-pill {
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: var(--white);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 160ms ease;
+}
+
+.cat-pill:hover,
+.cat-pill.active {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--white);
+    box-shadow: 0 4px 14px rgba(0,173,181,.3);
+    transform: translateY(-1px);
+}
+
+/* ── Product grid ── */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+/* ── 3-D scene wrapper ── */
+.product-scene {
+    perspective: 900px;
+    height: 400px;
+}
+
+/* ── The flipping card ── */
+.product-card-3d {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(.4,0,.2,1),
+                box-shadow 0.55s ease;
+    border-radius: 16px;
+    cursor: pointer;
+}
+
+.product-scene:hover .product-card-3d {
+    transform: rotateY(180deg);
+    box-shadow: 0 24px 60px rgba(0,173,181,.2), 0 8px 20px rgba(0,0,0,.1);
+}
+
+/* ── Shared face styles ── */
+.card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+}
+
+/* ── Front face ── */
+.card-front {
+    background: var(--white);
+    border: 1px solid rgba(217,222,229,.8);
+    box-shadow: 0 4px 20px rgba(0,0,0,.07);
+    display: flex;
+    flex-direction: column;
+}
+
+.product-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    background: #f1f5f9;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(99,102,241,.4);
+}
+
+.product-cat-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.75);
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 700;
+    z-index: 3;
+    backdrop-filter: blur(4px);
+}
+
+.product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.product-scene:hover .card-front .product-img {
+    transform: scale(1.08);
+}
+
+.product-body {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-body h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    color: var(--navy);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.price {
+    margin: 0 0 8px;
+    color: var(--danger);
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.flip-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 0;
+    opacity: 0.7;
+}
+
+/* ── Back face ── */
+.card-back {
+    background: linear-gradient(145deg, #1e2a3a, #0f172a);
+    transform: rotateY(180deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(99,102,241,.3);
+}
+
+.card-back-inner {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+}
+
+.back-icon {
+    font-size: 36px;
+    margin-bottom: 6px;
+    animation: backIconBounce 1.8s ease-in-out infinite;
+}
+
+@keyframes backIconBounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
+}
+
+.card-back h3 {
+    color: #f1f5f9;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    margin: 0;
+}
+
+.card-back .price {
+    color: #34d399;
+    font-size: 18px;
+}
+
+/* ── Quantity stepper ── */
+.qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 8px 0 4px;
+}
+
+.qty-label {
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.qty-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.qty-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    color: #e2e8f0;
+    border: none;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 140ms ease;
+    border-radius: 0;
+    padding: 0;
+}
+
+.qty-btn:hover {
+    background: rgba(99,102,241,.35);
+    color: #fff;
+    transform: none;
+    box-shadow: none;
+}
+
+.qty-val {
+    min-width: 32px;
+    text-align: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    transition: transform 200ms ease;
+}
+
+.qty-val.qty-pulse {
+    animation: qtyPop 0.22s ease;
+}
+
+@keyframes qtyPop {
+    0%   { transform: scale(1.6); color: #6ee7b7; }
+    100% { transform: scale(1);   color: #fff; }
+}
+
+.qty-subtotal {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 6px 0 12px;
+    text-align: center;
+}
+
+.qty-subtotal strong {
+    color: #34d399;
+}
+
+/* ── Add to Cart button (back face) ── */
+.atc-btn {
+    width: 100%;
+    justify-content: center;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 6px 20px rgba(99,102,241,.4);
+    font-size: 14px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.atc-btn:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 28px rgba(99,102,241,.5);
+}
+
+/* ── Flying cart bubble animation ── */
+.fly-bubble {
+    position: fixed;
+    font-size: 28px;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    transition: none;
+}
+
+.fly-bubble.fly-active {
+    animation: flyToCart 0.7s cubic-bezier(.25,.46,.45,.94) forwards;
+}
+
+@keyframes flyToCart {
+    0%   { transform: translate(-50%,-50%) scale(1.4); opacity: 1; }
+    60%  { transform: translate(-50%,-200%) scale(0.9); opacity: 1; }
+    100% { transform: translate(calc(-50% + 40vw), -150%) scale(0.3); opacity: 0; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAYMENT SUCCESS PAGE  –  3-D CUBE  +  CONFETTI
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.success-scene {
+    background:
+        radial-gradient(circle at 20% 30%, rgba(99,102,241,.18), transparent 45%),
+        radial-gradient(circle at 80% 70%, rgba(139,92,246,.14), transparent 45%),
+        #0f172a;
+    overflow: hidden;
+}
+
+/* ── Success card ── */
+.success-card {
+    position: relative;
+    z-index: 10;
+    background: rgba(30,41,59,.9);
+    border: 1px solid rgba(99,102,241,.3);
+    border-radius: 24px;
+    padding: 40px 44px;
+    width: min(600px, 100% - 32px);
+    box-shadow: 0 32px 80px rgba(0,0,0,.5),
+                0 0 0 1px rgba(255,255,255,.05) inset;
+    backdrop-filter: blur(12px);
+    animation: cardRise .6s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes cardRise {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.success-title {
+    color: #f1f5f9;
+    font-size: 32px;
+    text-align: center;
+    margin: 8px 0 0;
+}
+
+.success-sub {
+    color: #94a3b8;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin: 6px 0 0;
+}
+
+.success-sub .highlight {
+    color: #a78bfa;
+    font-weight: 800;
+}
+
+.success-scene .subtext {
+    color: #64748b;
+}
+
+/* ── 3-D Cube ── */
+.success-3d-wrap {
+    perspective: 400px;
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 8px;
+}
+
+.success-cube {
+    width: 84px;
+    height: 84px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: spinCube 4s linear infinite;
+}
+
+@keyframes spinCube {
+    0%   { transform: rotateX(0deg)   rotateY(0deg); }
+    25%  { transform: rotateX(90deg)  rotateY(90deg); }
+    50%  { transform: rotateX(180deg) rotateY(180deg); }
+    75%  { transform: rotateX(270deg) rotateY(270deg); }
+    100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+.cube-face {
+    position: absolute;
+    width: 84px;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(99,102,241,.4);
+    background: rgba(99,102,241,.12);
+    backdrop-filter: blur(4px);
+}
+
+.cube-front  { transform: translateZ(42px); }
+.cube-back   { transform: rotateY(180deg) translateZ(42px); }
+.cube-left   { transform: rotateY(-90deg) translateZ(42px); }
+.cube-right  { transform: rotateY( 90deg) translateZ(42px); }
+.cube-top    { transform: rotateX( 90deg) translateZ(42px); }
+.cube-bottom { transform: rotateX(-90deg) translateZ(42px); }
+
+/* ── Workflow success strip ── */
+.success-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+.ss-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(99,102,241,.12);
+    border: 1px solid rgba(99,102,241,.25);
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    min-width: 64px;
+    animation: stepFadeIn .5s ease both;
+}
+
+.ss-step.done { color: #a78bfa; border-color: rgba(167,139,250,.4); }
+.ss-step:nth-child(1)  { animation-delay: .1s; }
+.ss-step:nth-child(3)  { animation-delay: .25s; }
+.ss-step:nth-child(5)  { animation-delay: .4s; }
+.ss-step:nth-child(7)  { animation-delay: .55s; }
+.ss-step:nth-child(9)  { animation-delay: .7s; }
+
+@keyframes stepFadeIn {
+    from { transform: translateY(12px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.ss-icon { font-size: 20px; }
+.ss-arrow { color: #475569; font-weight: 800; font-size: 16px; }
+
+.pulse-step {
+    background: rgba(52,211,153,.14);
+    border-color: rgba(52,211,153,.4);
+    color: #34d399;
+    animation: stepFadeIn .5s ease both, pulseGlow 1.8s ease-in-out .9s infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,.4); }
+    50%       { box-shadow: 0 0 0 8px rgba(52,211,153,.0); }
+}
+
+/* ── Confetti ── */
+.confetti-wrap {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    top: -20px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+}
+
+.confetti-circle { border-radius: 50%; }
+.confetti-tri {
+    background: transparent !important;
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 10px solid #6366f1;
+}
+
+@keyframes confettiFall {
+    0%   { transform: translateY(0)    rotate(0deg)   scale(1);   opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(105vh) rotate(720deg) scale(0.6); opacity: 0; }
+}
+
+/* ── Success page action buttons ── */
+.success-card .action-row .button {
+    min-width: 140px;
+    font-size: 15px;
+    padding: 13px 22px;
+}

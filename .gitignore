@@ -1,0 +1,30 @@
+# Environment and secrets
+.env
+.env.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Logs
+*.log
+flask.err.log
+flask.out.log
+host.err.log
+host.out.log
+python-test.err.log
+python-test.out.log
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
