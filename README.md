@@ -31,6 +31,7 @@ API_Call-Sequence-Abuse-Detection/
 ├── prevention.py           # Adaptive Mitigation & Behavioral State Engine
 ├── sequence_tracker.py     # In-memory API Sequence Tracker
 ├── logger.py               # Forensic CSV Audit Logger
+├── benchmark.py            # Latency & Throughput Benchmark Suite
 │
 ├── templates/              # Jinja2 HTML Templates
 │   ├── login.html
@@ -43,6 +44,8 @@ API_Call-Sequence-Abuse-Detection/
 │   ├── abuse_alert.html
 │   ├── step_up.html
 │   ├── dashboard.html
+│   ├── risk_engine.html
+│   ├── reports.html
 │   └── simulations.html
 │
 ├── static/                 # Stylesheets & Static Assets
@@ -60,8 +63,8 @@ API_Call-Sequence-Abuse-Detection/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
-cd YOUR_REPOSITORY_NAME
+git clone https://github.com/MANOJ-0003/API_Call-Sequence-Abuse-Detection.git
+cd API_Call-Sequence-Abuse-Detection
 ```
 
 ### 2. Install Dependencies

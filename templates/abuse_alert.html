@@ -2,8 +2,184 @@
 <html>
 
 <head>
-    <title>API Sentinel Alert</title>
+    <title>API Sentinel – {% if is_admin %}Security Incident{% else %}Access Restricted{% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ── Prevention Mechanism Badges ─────────────────────────────────── */
+        .prev-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .prev-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .prev-step.active {
+            background: rgba(239,68,68,0.12);
+            border-color: rgba(239,68,68,0.35);
+        }
+        .prev-step.active-yellow {
+            background: rgba(251,191,36,0.10);
+            border-color: rgba(251,191,36,0.35);
+        }
+        .prev-step.active-orange {
+            background: rgba(249,115,22,0.12);
+            border-color: rgba(249,115,22,0.35);
+        }
+        .prev-step.active-green {
+            background: rgba(34,197,94,0.10);
+            border-color: rgba(34,197,94,0.30);
+        }
+        .prev-icon {
+            font-size: 20px;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .prev-label { font-weight: 600; color: #f1f5f9; flex: 1; }
+        .prev-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-fired  { background: #ef4444; color: #fff; }
+        .badge-skip   { background: #1e293b; color: #64748b; }
+
+        /* ── Trust Score Gauge ───────────────────────────────────────────── */
+        .trust-gauge-wrap {
+            margin: 12px 0 6px;
+        }
+        .trust-gauge-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+        .trust-gauge-track {
+            width: 100%;
+            height: 10px;
+            background: #1e293b;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .trust-gauge-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1.2s cubic-bezier(.25,.8,.25,1);
+        }
+        .trust-bar-high   { background: linear-gradient(90deg, #22c55e, #86efac); }
+        .trust-bar-medium { background: linear-gradient(90deg, #f59e0b, #fde68a); }
+        .trust-bar-low    { background: linear-gradient(90deg, #ef4444, #fca5a5); }
+
+        /* ── Cooldown Countdown ──────────────────────────────────────────── */
+        .cooldown-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: rgba(251,191,36,0.08);
+            border: 1px solid rgba(251,191,36,0.3);
+            border-radius: 10px;
+            margin-top: 14px;
+        }
+        .cooldown-timer {
+            font-size: 32px;
+            font-weight: 800;
+            color: #fbbf24;
+            min-width: 60px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+        .cooldown-meta { font-size: 13px; color: #94a3b8; }
+        .cooldown-meta strong { color: #fde68a; display: block; margin-bottom: 2px; }
+
+        /* ── User-facing notice card ─────────────────────────────────────── */
+        .user-block-card {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            max-width: 780px;
+            margin: 20px 0;
+        }
+        .user-block-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .user-block-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            margin: 0 0 10px;
+        }
+        .user-block-desc {
+            font-size: 15px;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .safe-steps-box {
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+        .safe-steps-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .step-pill-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .step-pill {
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--white);
+            border: 1px solid var(--line);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .step-pill.active-pill {
+            background: var(--teal);
+            color: #fff;
+            border-color: var(--teal);
+        }
+        .step-arrow {
+            color: #94a3b8;
+            font-weight: 800;
+        }
+    </style>
 </head>
 
 <body>
@@ -13,37 +189,115 @@
             <div class="brand-mark">S</div>
             <div>
                 <p class="brand-title">API Sentinel</p>
-                <p class="brand-subtitle">Detection Engine</p>
+                <p class="brand-subtitle">{% if is_admin %}Security Operations{% else %}Commerce Shield{% endif %}</p>
             </div>
         </div>
+
         <nav class="side-nav">
-            <span class="active">Active Alert</span>
-            <span>Request Blocked</span>
-            <span>Restart Required</span>
+            {% if is_admin %}
+                <!-- Admin-Only Navigation -->
+                <a href="#alert-details" class="active">🚨 Active Incident</a>
+                <a href="#prevention-decision">🛡️ Prevention Logic</a>
+                <a href="/dashboard">📊 SOC Dashboard</a>
+                <a href="/risk-engine">🛡️ Risk Engine</a>
+                <a href="/reports">📑 Audit Reports</a>
+                <a href="/simulate-attacks">⚡ Attack Simulator</a>
+                <a href="/admin/logout" style="color: #f87171; margin-top: 14px;">🚪 Admin Logout</a>
+            {% else %}
+                <!-- End-User / Attacker Safe Navigation (No admin security links) -->
+                <a href="/" class="active">🛍️ Storefront</a>
+                {% if user and user != 'anonymous' %}
+                <a href="/products?user={{user}}">📦 Products</a>
+                <a href="/cart?user={{user}}">🛒 My Cart</a>
+                {% endif %}
+                <a href="/" style="color: #38bdf8; font-weight: 700; background: rgba(56, 189, 248, 0.12); border-left: 3px solid #38bdf8;">🔄 Restart Safe Session</a>
+                <a href="/" style="color: #f87171; margin-top: 14px;">🚪 Return to Login</a>
+            {% endif %}
         </nav>
     </aside>
 
     <main class="main-panel">
         <header class="topbar">
             <div class="search-box">
-                <input type="text" value="Incident for {{user}} on {{api_name}}" aria-label="Incident context" readonly>
+                <input type="text" value="{% if is_admin %}Incident Analysis: {{user}} on /{{api_name}}{% else %}Security Notice for {{user}}{% endif %}" aria-label="Context" readonly>
             </div>
             <div class="top-actions">
-                <span class="status-chip status-{{analysis.risk|lower}}">{{analysis.risk}} Risk</span>
+                <span class="status-chip status-{{analysis.risk|lower}}">
+                    {% if is_admin %}{{analysis.risk}} Risk{% else %}Request Blocked{% endif %}
+                </span>
+                <a href="/" class="button button-secondary" style="padding: 6px 14px; font-size: 13px;">🔄 Restart</a>
                 <div class="avatar">{{user[0]|upper}}</div>
             </div>
         </header>
 
-        <section class="content">
+        <section class="content" id="alert-details">
+
+        {% if not is_admin %}
+            <!-- ============================================================= -->
+            <!-- END-USER / ATTACKER VIEW: SAFE, OPAQUE ERROR (NO RULE LEAKS) -->
+            <!-- ============================================================= -->
+            <div class="user-block-card">
+                <div class="user-block-icon">🛡️</div>
+                <h1 class="user-block-title">403 Forbidden – Request Restricted</h1>
+                <p class="user-block-desc">
+                    Your request to endpoint <code>/{{api_name}}</code> was blocked by API Sentinel's behavioral security engine.
+                    For data protection and transaction integrity, operations must follow the standard shopping workflow.
+                </p>
+
+                <!-- Cooldown Notice if applicable -->
+                {% if prevention.cooldown_seconds and prevention.cooldown_seconds > 0 %}
+                <div class="cooldown-box" style="margin-bottom: 24px;">
+                    <div class="cooldown-timer" id="cdTimer">{{prevention.cooldown_seconds}}</div>
+                    <div class="cooldown-meta">
+                        <strong>Temporary Request Cooldown Active</strong>
+                        Please wait {{prevention.cooldown_seconds}} seconds before retrying your request.
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="safe-steps-box">
+                    <div class="safe-steps-title">✅ Expected Commerce Journey</div>
+                    <div class="step-pill-row">
+                        <span class="step-pill active-pill">1. Login</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step-pill">2. Browse Products</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step-pill">3. Add to Cart</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step-pill">4. Checkout</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step-pill">5. Payment</span>
+                    </div>
+                </div>
+
+                <div class="action-row" style="display: flex; gap: 14px; flex-wrap: wrap;">
+                    <a class="button" href="/" style="background: linear-gradient(135deg, #00adb5, #008c92); font-weight: 700; padding: 12px 24px;">
+                        🔄 Restart Shopping Session
+                    </a>
+                    {% if user and user != 'anonymous' %}
+                    <a class="button button-secondary" href="/products?user={{user}}" style="padding: 12px 20px;">
+                        📦 Back to Products
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        {% else %}
+            <!-- ============================================================= -->
+            <!-- ADMIN SOC FORENSIC VIEW: FULL SECURITY TELEMETRY              -->
+            <!-- ============================================================= -->
             <div class="page-header">
                 <div>
-                    <p class="eyebrow">Abuse Detection Alert</p>
+                    <p class="eyebrow">SOC Incident Forensics (Admin View)</p>
                     <h1>{{analysis.title}}</h1>
                     <p class="subtext">{{analysis.summary}}</p>
                 </div>
-                <span class="status-chip status-{{analysis.risk|lower}}">{{prevention.action}}</span>
+                <span class="status-chip status-{{analysis.risk|lower}}">
+                    {{ prevention.prevention_name or prevention.action }}
+                </span>
             </div>
 
+            <!-- KPI Row -->
             <div class="kpi-grid">
                 <article class="kpi-card danger-card">
                     <div class="kpi-top"><span>Risk Score</span><span>Alert</span></div>
@@ -67,11 +321,11 @@
                 </article>
             </div>
 
+            <!-- Main Grid -->
             <div class="grid-two">
                 <section class="panel alert-panel">
                     <h2>Why this is abuse</h2>
                     <p>{{analysis.reason}}</p>
-
                     <div class="detail-list">
                         <div>
                             <strong>Violated rule</strong>
@@ -84,17 +338,49 @@
                     </div>
                 </section>
 
-                <section class="panel">
+                <section class="panel" id="prevention-decision">
                     <h2>Prevention Decision</h2>
                     <div class="risk-score-card">
                         <span>{{analysis.risk_score}}</span>
                         <p>{{prevention.message}}</p>
                     </div>
-                    <div class="risk-meter risk-meter-danger"><span style="width: {{analysis.risk_score}}%"></span></div>
-                    <div class="detail-list">
+                    <div class="risk-meter risk-meter-danger">
+                        <span style="width: {{analysis.risk_score}}%"></span>
+                    </div>
+
+                    <!-- Trust Score Gauge -->
+                    <div class="trust-gauge-wrap" style="margin-top:18px;">
+                        <div class="trust-gauge-label">
+                            <span>Behavioral Trust Score</span>
+                            <span><strong>{{prevention.trust_score}} / 100</strong></span>
+                        </div>
+                        <div class="trust-gauge-track">
+                            {% set ts = prevention.trust_score %}
+                            <div class="trust-gauge-bar
+                                {% if ts >= 80 %}trust-bar-high
+                                {% elif ts >= 50 %}trust-bar-medium
+                                {% else %}trust-bar-low{% endif %}"
+                                id="trustBar" style="width: 0%">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cooldown Countdown -->
+                    {% if prevention.cooldown_seconds and prevention.cooldown_seconds > 0 %}
+                    <div class="cooldown-box">
+                        <div class="cooldown-timer" id="cdTimer">{{prevention.cooldown_seconds}}</div>
+                        <div class="cooldown-meta">
+                            <strong>Progressive Cooldown Active</strong>
+                            Request blocked for {{prevention.cooldown_seconds}}s.
+                            Violations escalate: 5s → 15s → 30s.
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="detail-list" style="margin-top:14px;">
                         <div>
                             <strong>Action taken</strong>
-                            <span>{{prevention.action}}</span>
+                            <span>{{ prevention.prevention_name or prevention.action }}</span>
                         </div>
                         <div>
                             <strong>Violation count</strong>
@@ -103,21 +389,77 @@
                         <div>
                             <strong>Session state</strong>
                             <span>
-                                {% if prevention.quarantined %}
-                                Quarantined
-                                {% elif prevention.workflow_locked %}
-                                Workflow locked
-                                {% elif prevention.cooldown_seconds %}
-                                Cooldown: {{prevention.cooldown_seconds}} seconds
-                                {% else %}
-                                Blocked request
-                                {% endif %}
+                                {% if prevention.session_revoked %}🔴 Session Revoked
+                                {% elif prevention.quarantined %}🟠 Quarantined
+                                {% elif prevention.workflow_locked %}🟡 Workflow Locked
+                                {% elif prevention.cooldown_seconds %}🔵 Cooldown ({{prevention.cooldown_seconds}}s)
+                                {% else %}⚠️ Blocked Request{% endif %}
                             </span>
                         </div>
                     </div>
                 </section>
             </div>
 
+            <!-- Prevention Mechanism Timeline -->
+            <section class="panel section-gap">
+                <h2>Prevention Mechanism Activated</h2>
+                <p class="subtext" style="margin-bottom:14px;">
+                    API Sentinel applies the correct prevention tier for each attack type.
+                </p>
+                <div class="prev-timeline">
+                    {% set pname = prevention.prevention_name or prevention.action %}
+
+                    <div class="prev-step active-green {% if 'Rate Throttling' in pname or 'Rate Limit' in pname %}active-yellow{% endif %}">
+                        <span class="prev-icon">📊</span>
+                        <span class="prev-label">Adaptive Rate Limiting — 100 → 20 → 5 req/min</span>
+                        <span class="prev-badge {% if 'Rate Throttling' in pname or 'Rate Limit' in pname %}badge-fired{% else %}badge-skip{% endif %}">
+                            {% if 'Rate Throttling' in pname or 'Rate Limit' in pname %}Fired{% else %}—{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="prev-step {% if 'Cooldown' in pname %}active-yellow{% endif %}">
+                        <span class="prev-icon">⏱️</span>
+                        <span class="prev-label">Progressive Cooldown — 5s → 15s → 30s per violation</span>
+                        <span class="prev-badge {% if 'Cooldown' in pname %}badge-fired{% else %}badge-skip{% endif %}">
+                            {% if 'Cooldown' in pname %}Fired{% else %}—{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="prev-step {% if 'Workflow' in pname %}active-orange{% endif %}">
+                        <span class="prev-icon">🔒</span>
+                        <span class="prev-label">Workflow Locking — blocks invalid state transitions</span>
+                        <span class="prev-badge {% if 'Workflow' in pname %}badge-fired{% else %}badge-skip{% endif %}">
+                            {% if 'Workflow' in pname %}Fired{% else %}—{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="prev-step {% if 'Step-Up' in pname %}active-orange{% endif %}">
+                        <span class="prev-icon">🔐</span>
+                        <span class="prev-label">Step-Up Verification — OTP before sensitive actions</span>
+                        <span class="prev-badge {% if 'Step-Up' in pname %}badge-fired{% else %}badge-skip{% endif %}">
+                            {% if 'Step-Up' in pname %}Fired{% else %}—{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="prev-step {% if 'Quarantine' in pname %}active{% endif %}">
+                        <span class="prev-icon">🚧</span>
+                        <span class="prev-label">Session Quarantine — restricts all sensitive API access</span>
+                        <span class="prev-badge {% if 'Quarantine' in pname %}badge-fired{% else %}badge-skip{% endif %}">
+                            {% if 'Quarantine' in pname %}Fired{% else %}—{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="prev-step {% if 'Revocation' in pname or 'Revoke' in pname %}active{% endif %}">
+                        <span class="prev-icon">🛑</span>
+                        <span class="prev-label">Session Revocation — complete session invalidation</span>
+                        <span class="prev-badge {% if 'Revocation' in pname or 'Revoke' in pname %}badge-fired{% else %}badge-skip{% endif %}">
+                            {% if 'Revocation' in pname or 'Revoke' in pname %}Fired{% else %}—{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Flow Diagrams -->
             <section class="panel section-gap">
                 <h2>Expected Flow</h2>
                 <div class="workflow">
@@ -139,12 +481,43 @@
                 <p class="subtext">The highlighted request is where the sequence rule was evaluated and the request was blocked.</p>
             </section>
 
-            <div class="action-row">
-                <a class="button" href="/">Start New Safe Session</a>
+            <div class="action-row" style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 24px;">
+                <a class="button" href="/" style="background: linear-gradient(135deg, #00adb5, #008c92); font-weight: 700;">🔄 Start New Safe Session / Restart</a>
+                <a class="button button-secondary" href="/dashboard">📊 View SOC Dashboard</a>
+                <a class="button button-secondary" href="/risk-engine">🛡️ Test in Risk Engine</a>
             </div>
+        {% endif %}
+
         </section>
     </main>
 </div>
-</body>
 
+<script>
+/* ── Trust gauge animated fill ─────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+    const bar = document.getElementById('trustBar');
+    if (bar) {
+        const target = {{prevention.trust_score}};
+        setTimeout(() => { bar.style.width = target + '%'; }, 150);
+    }
+
+    /* ── Cooldown countdown timer ───────────────────────────────────────── */
+    const timer = document.getElementById('cdTimer');
+    if (timer) {
+        let secs = parseInt(timer.textContent, 10);
+        const tick = setInterval(() => {
+            secs -= 1;
+            if (secs <= 0) {
+                clearInterval(tick);
+                timer.textContent = '0';
+                timer.style.color = '#22c55e';
+            } else {
+                timer.textContent = secs;
+            }
+        }, 1000);
+    }
+});
+</script>
+
+</body>
 </html>

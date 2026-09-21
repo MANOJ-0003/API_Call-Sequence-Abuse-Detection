@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>API Sentinel – Security & Compliance Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Security Operations</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/simulate-attacks">⚡ Attack Simulation</a>
+            <a href="/risk-engine">🛡️ Risk Engine</a>
+            <span class="active">📑 Reports</span>
+            <a href="/">🛍️ User Workflow</a>
+            <a href="/admin/logout" style="color: #f87171;">🚪 Admin Logout</a>
+        </nav>
+    </aside>
+
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" id="reportSearch" placeholder="🔍 Search events by user, API, or reason…" oninput="filterTable()" autocomplete="off">
+            </div>
+            <div class="top-actions">
+                <span class="status-chip status-low">Audit Stream</span>
+                
+                <!-- Admin Profile Dropdown -->
+                <div class="profile-dropdown-container">
+                    <button class="profile-trigger" id="profileTrigger" onclick="toggleProfileDropdown(event)" aria-label="Admin Profile">
+                        <div class="avatar" style="background: var(--teal); color: #fff;">A</div>
+                        <span class="profile-name">Administrator</span>
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="avatar-lg" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">A</div>
+                            <div class="profile-info">
+                                <strong class="profile-username">admin</strong>
+                                <span class="profile-role">Security Officer</span>
+                                <span class="profile-status" style="color: #3b82f6;">● SOC Admin</span>
+                            </div>
+                        </div>
+                        <div class="profile-dropdown-divider"></div>
+                        <div class="profile-dropdown-links">
+                            <a href="/dashboard" class="profile-dropdown-item">📊 Dashboard</a>
+                            <a href="/risk-engine" class="profile-dropdown-item">🛡️ Risk Engine</a>
+                            <a href="/reports" class="profile-dropdown-item">📑 Reports</a>
+                            <a href="/simulate-attacks" class="profile-dropdown-item">⚡ Attack Simulations</a>
+                        </div>
+                        <div class="profile-dropdown-divider"></div>
+                        <a href="/admin/logout" class="profile-dropdown-item logout-item">🚪 Admin Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Forensic Audit & Compliance</p>
+                    <h1>Security Incident & Activity Reports</h1>
+                    <p class="subtext">Comprehensive historical logs of all detected sequence violations, blocked requests, and user activities.</p>
+                </div>
+                <div class="action-row compact-actions">
+                    <a class="button button-success" href="/export-report?type=security">📥 Export Security CSV</a>
+                    <a class="button button-secondary" href="/export-report?type=activity">📥 Export Activity CSV</a>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Total Security Incidents</span><span>All Time</span></div>
+                    <p class="kpi-value">{{ total_incidents }}</p>
+                </article>
+                <article class="kpi-card danger-card">
+                    <div class="kpi-top"><span>Critical / High Threats</span><span>Severity</span></div>
+                    <p class="kpi-value">{{ critical_high_count }}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Mitigations Enforced</span><span>Actioned</span></div>
+                    <p class="kpi-value">{{ blocked_count }}</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-top"><span>Monitored Users</span><span>Sessions</span></div>
+                    <p class="kpi-value">{{ unique_users_count }}</p>
+                </article>
+            </div>
+
+            <!-- Visual Reports Breakdown -->
+            <div class="grid-two" style="margin-bottom: 24px;">
+                <section class="panel">
+                    <h2>📊 Incidents by Risk Severity</h2>
+                    <div class="chart-wrap">
+                        <canvas id="riskReportChart"></canvas>
+                    </div>
+                </section>
+                <section class="panel">
+                    <h2>🛡️ Mitigation Enforcement Actions</h2>
+                    <div class="chart-wrap">
+                        <canvas id="actionReportChart"></canvas>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="cat-pills" style="margin-bottom: 16px;">
+                <span style="font-weight: 700; color: var(--navy); display: flex; align-items: center; margin-right: 8px;">Filter Severity:</span>
+                <button class="cat-pill active" onclick="filterRisk('all', this)">All Incidents</button>
+                <button class="cat-pill" style="border-color: #ef4444; color: #ef4444;" onclick="filterRisk('Critical', this)">🔴 Critical</button>
+                <button class="cat-pill" style="border-color: #f97316; color: #f97316;" onclick="filterRisk('High', this)">🟠 High</button>
+                <button class="cat-pill" style="border-color: #eab308; color: #eab308;" onclick="filterRisk('Medium', this)">🟡 Medium</button>
+                <button class="cat-pill" style="border-color: #10b981; color: #10b981;" onclick="filterRisk('Low', this)">🟢 Low</button>
+            </div>
+
+            <!-- Detailed Security Incident Audit Log -->
+            <section class="panel table-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2 style="margin: 0;">Detailed Forensic Security Log</h2>
+                    <span class="subtext">Showing latest {{ events|length }} recorded events</span>
+                </div>
+
+                <table id="eventsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Target API</th>
+                            <th>Risk Level</th>
+                            <th>Risk Score</th>
+                            <th>Enforced Action</th>
+                            <th>Violated Rule / Summary</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if events %}
+                            {% for event in events|reverse %}
+                            <tr class="event-row" data-risk="{{ event[3] }}" data-text="{{ event[0]|lower }} {{ event[1]|lower }} {{ event[2]|lower }} {{ event[6]|lower if event|length > 6 else '' }}">
+                                <td>{{ loop.index }}</td>
+                                <td><code style="font-size: 12px;">{{ event[8] if event|length > 8 else 'Recent' }}</code></td>
+                                <td><strong>{{ event[0] }}</strong></td>
+                                <td><code>{{ event[1] }}</code></td>
+                                <td>
+                                    <span class="status-chip {% if event[3] == 'Critical' %}status-critical{% elif event[3] == 'High' %}status-high{% elif event[3] == 'Medium' %}status-medium{% else %}status-low{% endif %}">
+                                        {{ event[3] }}
+                                    </span>
+                                </td>
+                                <td><strong>{{ event[4] }} / 100</strong></td>
+                                <td><span style="font-weight: 700; color: #ea580c;">{{ event[5] }}</span></td>
+                                <td style="max-width: 320px; font-size: 13px;">
+                                    <strong>{{ event[2] }}</strong>
+                                    {% if event|length > 6 and event[6] %}
+                                    <div style="color: #64748b; font-size: 12px; margin-top: 2px;">{{ event[6] }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if event[5] == 'Warning' %}
+                                        <span class="status-chip status-medium">Warned</span>
+                                    {% else %}
+                                        <span class="status-chip status-high">Blocked ({{ event[7] if event|length > 7 else '403' }})</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" style="text-align: center; color: #94a3b8; padding: 24px;">No security incidents recorded yet.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </section>
+        </section>
+    </main>
+</div>
+
+<script>
+/* ── Profile Dropdown ── */
+function toggleProfileDropdown(e) {
+    e.stopPropagation();
+    const d = document.getElementById('profileDropdown');
+    const t = document.getElementById('profileTrigger');
+    if (d) { d.classList.toggle('show'); if (t) t.classList.toggle('active'); }
+}
+document.addEventListener('click', function(e) {
+    const d = document.getElementById('profileDropdown');
+    const t = document.getElementById('profileTrigger');
+    if (d && d.classList.contains('show') && !d.contains(e.target) && !t.contains(e.target)) {
+        d.classList.remove('show'); if (t) t.classList.remove('active');
+    }
+});
+
+/* ── Filter Logic ── */
+let currentRiskFilter = 'all';
+
+function filterRisk(risk, pill) {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentRiskFilter = risk;
+    filterTable();
+}
+
+function filterTable() {
+    const q = document.getElementById('reportSearch').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('.event-row');
+    rows.forEach(r => {
+        const matchRisk = (currentRiskFilter === 'all' || r.dataset.risk === currentRiskFilter);
+        const matchText = (!q || r.dataset.text.includes(q));
+        r.style.display = (matchRisk && matchText) ? '' : 'none';
+    });
+}
+
+/* ── Charts ── */
+const riskData = {{ risk_counts | tojson }};
+const actionData = {{ action_counts | tojson }};
+
+new Chart(document.getElementById('riskReportChart'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(riskData),
+        datasets: [{
+            data: Object.values(riskData),
+            backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#7f1d1d'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+new Chart(document.getElementById('actionReportChart'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(actionData),
+        datasets: [{
+            label: 'Events Actioned',
+            data: Object.values(actionData),
+            backgroundColor: '#00adb5',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
+</body>
+</html>

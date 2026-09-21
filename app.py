@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, session, url_for
+from flask import Flask, request, render_template, redirect, session, url_for, jsonify, send_file
 from logger import log_api_call, log_security_event, log_user_activity
 from sequence_tracker import track_sequence, reset_sequence
 from detector import analyze_abuse
@@ -40,12 +40,22 @@ def client_fingerprint():
     ])
 
 
+@app.after_request
+def add_security_headers(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 def prevention_alert(user, api_name, result, prevention):
     log_security_event(user, api_name, result, prevention)
     if prevention.get("session_revoked"):
         session.clear()
+    is_admin = session.get("admin_logged_in") is True
     return render_template("abuse_alert.html", user=user, api_name=api_name,
-                           analysis=result, prevention=prevention), prevention["http_status"]
+                           analysis=result, prevention=prevention,
+                           is_admin=is_admin), prevention["http_status"]
 
 
 def load_registered_users():
@@ -397,7 +407,8 @@ products_list = {
 
 @app.route("/")
 def home():
-    return render_template("login.html", error=None, success=None)
+    error = request.args.get("error")
+    return render_template("login.html", error=error, success=None)
 
 
 @app.route("/admin")
@@ -432,12 +443,22 @@ def process_request(user, api_name):
 
     behavior = observe_behavior(user, client_fingerprint())
     if api_name != "login" and behavior["rate_limited"]:
+        trust = get_user_state(user)["trust_score"]
+        if trust >= 80:
+            tier_label = "Normal (100 req/min)"
+        elif trust >= 50:
+            tier_label = "Suspicious (20 req/min)"
+        else:
+            tier_label = "High-Risk (5 req/min)"
         result = {
-            "status": "Abuse Detected", "title": "Adaptive Rate Limit Exceeded", "risk": "High", "risk_score": 83,
-            "summary": "Request velocity exceeded the session's behavior-based API limit.",
-            "reason": "The rate limit tightens from 100 to 20 requests per minute after suspicious behavior.",
-            "violated_rule": "requests must remain within the adaptive per-minute limit", "missing_step": None,
-            "expected_flow": ["login", "products", "add-to-cart", "checkout", "pay"], "observed_flow": track_sequence(user, api_name),
+            "status": "Abuse Detected", "title": "Adaptive Rate Limit Exceeded",
+            "risk": "High", "risk_score": 83,
+            "summary": f"Request velocity exceeded the adaptive API limit for this session's trust band: {tier_label}.",
+            "reason": "Rate limits tighten as trust score decreases: 100→20→5 requests/min across three risk tiers.",
+            "violated_rule": "requests must remain within the adaptive per-minute limit",
+            "missing_step": None,
+            "expected_flow": ["login", "products", "add-to-cart", "checkout", "pay"],
+            "observed_flow": track_sequence(user, api_name),
             "recommendation": "Temporarily restrict the session and continue monitoring for automation or replay behavior.",
         }
         return prevention_alert(user, api_name, result, rate_limit_decision(user, behavior))
@@ -447,46 +468,64 @@ def process_request(user, api_name):
 
     if api_name != "login" and cooldown_remaining > 0:
         sequence = track_sequence(user, api_name)
+        tier_num  = min(state["cooldown_tier"], 3)        # 1-indexed for display
+        tier_secs = [5, 15, 30][min(state["cooldown_tier"] - 1, 2)] if state["cooldown_tier"] > 0 else cooldown_remaining
         result = {
             "status": "Abuse Detected",
             "title": "Adaptive Cooldown Active",
             "risk": "Medium",
             "risk_score": 68,
-            "summary": "The user attempted a protected request while a progressive cooldown restriction was still active.",
-            "reason": "Progressive risk-based prevention slows repeated abnormal behavior before escalating to a workflow lock or quarantine.",
+            "summary": (
+                f"Progressive cooldown tier {tier_num}/3 is active ({tier_secs}s). "
+                "Request blocked until the restriction expires."
+            ),
+            "reason": (
+                "Progressive cooldowns escalate with each violation: 5s → 15s → 30s. "
+                "This slows automated abuse while allowing legitimate users to recover."
+            ),
             "violated_rule": "cooldown period must expire before another protected workflow request",
             "missing_step": None,
             "expected_flow": ["login", "products", "add-to-cart", "checkout", "pay"],
             "observed_flow": sequence,
-            "recommendation": "Keep the temporary restriction active and allow the user to retry after the cooldown expires.",
+            "recommendation": f"Allow the user to retry after {cooldown_remaining}s. Escalate to Workflow Lock on the next violation.",
         }
         prevention = {
-            "action": "Adaptive Cooldown",
-            "blocked": True,
-            "http_status": 429,
-            "trust_score": state["trust_score"],
-            "violations": state["violations"],
-            "workflow_locked": state["workflow_locked"],
-            "quarantined": state["quarantined"],
+            "action":           "Warning + Cooldown",
+            "prevention_name":  "Cooldown",
+            "blocked":          True,
+            "http_status":      429,
+            "trust_score":      state["trust_score"],
+            "violations":       state["violations"],
+            "workflow_locked":  state["workflow_locked"],
+            "quarantined":      state["quarantined"],
+            "session_revoked":  state.get("session_revoked", False),
             "cooldown_seconds": cooldown_remaining,
-            "message": f"Temporary restriction active. Retry after {cooldown_remaining} seconds.",
+            "message": (
+                f"Progressive cooldown tier {tier_num}/3 active ({tier_secs}s max). "
+                f"Retry in {cooldown_remaining}s."
+            ),
         }
         return prevention_alert(user, api_name, result, prevention)
 
     if api_name != "login" and (state["workflow_locked"] or state["quarantined"]):
         sequence = track_sequence(user, api_name)
+        is_quarantined = state["quarantined"]
         result = {
             "status": "Abuse Detected",
             "title": "Workflow Locked",
-            "risk": "Critical" if state["quarantined"] else "High",
-            "risk_score": 92 if state["quarantined"] else 78,
-            "summary": "The user attempted another protected request after the prevention engine locked the workflow.",
+            "risk": "Critical" if is_quarantined else "High",
+            "risk_score": 92 if is_quarantined else 78,
+            "summary": (
+                "Session quarantined: all sensitive API operations are blocked."
+                if is_quarantined else
+                "Workflow locked: invalid business-state transition previously detected."
+            ),
             "reason": "After repeated or high-risk sequence violations, the framework prevents continuation from an unsafe workflow state.",
             "violated_rule": "locked workflows must restart from login",
             "missing_step": "login",
             "expected_flow": ["login", "products", "add-to-cart", "checkout", "pay"],
             "observed_flow": sequence,
-            "recommendation": "Keep the request blocked and require a fresh login before allowing workflow APIs again.",
+            "recommendation": "Require a fresh login before allowing any workflow APIs.",
         }
         prevention = apply_prevention(user, result)
         return prevention_alert(user, api_name, result, prevention)
@@ -847,7 +886,7 @@ def honeypot_api():
 def dashboard():
 
     if not admin_required():
-        return redirect(url_for("home"))
+        return redirect(url_for("home", error="Access Denied. You must log in with administrator credentials to view the Dashboard."))
 
     logs = []
     events = []
@@ -1014,7 +1053,7 @@ def dashboard():
 def simulate_attacks():
 
     if not admin_required():
-        return redirect(url_for("home"))
+        return redirect(url_for("home", error="Access Denied. Admin login required for Attack Simulations."))
 
     scenarios = [
         {
@@ -1065,6 +1104,106 @@ def simulate_attacks():
         })
 
     return render_template("simulations.html", results=results)
+
+
+@app.route("/risk-engine")
+def risk_engine_view():
+    if not admin_required():
+        return redirect(url_for("home", error="Access Denied. Admin login required for Risk Engine."))
+
+    user_states = get_all_states()
+    return render_template("risk_engine.html", user_states=user_states)
+
+
+@app.route("/reports")
+def reports_view():
+    if not admin_required():
+        return redirect(url_for("home", error="Access Denied. Admin login required for Audit Reports."))
+
+    events = []
+    risk_counts = {"Low": 0, "Medium": 0, "High": 0, "Critical": 0}
+    action_counts = {}
+    unique_users = set()
+
+    if os.path.exists("security_events.csv"):
+        with open("security_events.csv", "r", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) < 6:
+                    continue
+                events.append(row)
+                unique_users.add(row[0])
+                risk = row[3]
+                action = row[5]
+                risk_counts[risk] = risk_counts.get(risk, 0) + 1
+                action_counts[action] = action_counts.get(action, 0) + 1
+
+    critical_high_count = risk_counts.get("Critical", 0) + risk_counts.get("High", 0)
+    blocked_count = sum(v for k, v in action_counts.items() if k != "Warning")
+
+    return render_template(
+        "reports.html",
+        events=events,
+        risk_counts=risk_counts,
+        action_counts=action_counts,
+        total_incidents=len(events),
+        critical_high_count=critical_high_count,
+        blocked_count=blocked_count,
+        unique_users_count=len(unique_users)
+    )
+
+
+@app.route("/api/evaluate-sequence", methods=["POST"])
+def evaluate_sequence_api():
+    if not admin_required():
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json() or {}
+    sequence = data.get("sequence", [])
+    if not sequence:
+        return jsonify({"error": "Empty sequence"}), 400
+
+    analysis = analyze_abuse(sequence)
+    sim_user = "eval-sandbox-user"
+    prevention = apply_prevention(sim_user, analysis)
+    clear_user_state(sim_user)
+
+    return jsonify({
+        "sequence": sequence,
+        "analysis": analysis,
+        "prevention": prevention
+    })
+
+
+@app.route("/api/reset-user-risk", methods=["POST"])
+def reset_user_risk_api():
+    if not admin_required():
+        return redirect(url_for("home"))
+
+    target_user = request.form.get("user")
+    if target_user:
+        reset_user_state(target_user)
+        log_user_activity(ADMIN_USERNAME, "admin-risk-reset", f"Reset trust score for {target_user}", "admin")
+
+    return redirect(url_for("risk_engine_view"))
+
+
+@app.route("/export-report")
+def export_report_download():
+    if not admin_required():
+        return redirect(url_for("home"))
+
+    report_type = request.args.get("type", "security")
+    file_map = {
+        "security": ("security_events.csv", "api_sentinel_security_events.csv"),
+        "activity": ("user_activity.csv", "api_sentinel_user_activity.csv"),
+        "traffic": ("api_logs.csv", "api_sentinel_traffic_logs.csv")
+    }
+    src, download_name = file_map.get(report_type, ("security_events.csv", "security_events.csv"))
+
+    if os.path.exists(src):
+        return send_file(src, as_attachment=True, download_name=download_name)
+    return "Report file not found", 404
 
 
 if __name__ == "__main__":

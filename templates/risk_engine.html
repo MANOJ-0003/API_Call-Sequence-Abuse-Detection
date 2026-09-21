@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>API Sentinel – Risk & Prevention Engine</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <div>
+                <p class="brand-title">API Sentinel</p>
+                <p class="brand-subtitle">Security Operations</p>
+            </div>
+        </div>
+        <nav class="side-nav">
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/simulate-attacks">⚡ Attack Simulation</a>
+            <span class="active">🛡️ Risk Engine</span>
+            <a href="/reports">📑 Reports</a>
+            <a href="/">🛍️ User Workflow</a>
+            <a href="/admin/logout" style="color: #f87171;">🚪 Admin Logout</a>
+        </nav>
+    </aside>
+
+    <main class="main-panel">
+        <header class="topbar">
+            <div class="search-box">
+                <input type="text" value="State-Machine & Behavioral Risk Analysis Engine" aria-label="Engine context" readonly>
+            </div>
+            <div class="top-actions">
+                <span class="status-chip status-low">Engine Active</span>
+                
+                <!-- Admin Profile Dropdown -->
+                <div class="profile-dropdown-container">
+                    <button class="profile-trigger" id="profileTrigger" onclick="toggleProfileDropdown(event)" aria-label="Admin Profile">
+                        <div class="avatar" style="background: var(--teal); color: #fff;">A</div>
+                        <span class="profile-name">Administrator</span>
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="avatar-lg" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">A</div>
+                            <div class="profile-info">
+                                <strong class="profile-username">admin</strong>
+                                <span class="profile-role">Security Officer</span>
+                                <span class="profile-status" style="color: #3b82f6;">● SOC Admin</span>
+                            </div>
+                        </div>
+                        <div class="profile-dropdown-divider"></div>
+                        <div class="profile-dropdown-links">
+                            <a href="/dashboard" class="profile-dropdown-item">📊 Dashboard</a>
+                            <a href="/risk-engine" class="profile-dropdown-item">🛡️ Risk Engine</a>
+                            <a href="/reports" class="profile-dropdown-item">📑 Reports</a>
+                            <a href="/simulate-attacks" class="profile-dropdown-item">⚡ Attack Simulations</a>
+                        </div>
+                        <div class="profile-dropdown-divider"></div>
+                        <a href="/admin/logout" class="profile-dropdown-item logout-item">🚪 Admin Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="content">
+            <div class="page-header">
+                <div>
+                    <p class="eyebrow">Behavioral Security Core</p>
+                    <h1>Risk & Prevention Engine</h1>
+                    <p class="subtext">Inspect state-machine rule definitions, behavioral trust scoring models, and test custom API sequences.</p>
+                </div>
+                <div class="action-row compact-actions">
+                    <a class="button" href="/dashboard">Back to Dashboard</a>
+                    <a class="button button-secondary" href="/reports">View Incident Reports</a>
+                </div>
+            </div>
+
+            <!-- Interactive Live Sequence Risk Evaluator -->
+            <section class="panel" style="margin-bottom: 24px; border-left: 5px solid var(--teal);">
+                <h2>🧪 Live Interactive Sequence Risk Tester</h2>
+                <p class="subtext">Select an ordered chain of API calls or click preset buttons to evaluate how the Risk Engine computes risk scores, missing steps, and automated mitigations.</p>
+                
+                <div style="margin: 16px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="button button-sm button-secondary" onclick="setSequence(['login', 'products', 'add-to-cart', 'checkout', 'pay'])">✅ Normal Purchase</button>
+                    <button type="button" class="button button-sm button-secondary" onclick="setSequence(['login', 'checkout'])">⚠️ Checkout Bypass</button>
+                    <button type="button" class="button button-sm button-secondary" onclick="setSequence(['products'])">🚫 Unauthenticated Access</button>
+                    <button type="button" class="button button-sm button-secondary" onclick="setSequence(['login', 'products', 'pay'])">❌ Payment Bypass</button>
+                    <button type="button" class="button button-sm button-secondary" onclick="setSequence(['login', 'admin-test'])">💀 Honeypot Probe</button>
+                    <button type="button" class="button button-sm button-secondary" onclick="setSequence(['login', 'products', 'add-to-cart', 'checkout', 'checkout'])">🔄 Checkout Replay</button>
+                </div>
+
+                <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 16px;">
+                    <label style="font-weight: 700; color: var(--navy); display: block; margin-bottom: 8px;">Custom Sequence (Click endpoints to append):</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                        <button type="button" class="cat-pill" onclick="appendStep('login')">+ login</button>
+                        <button type="button" class="cat-pill" onclick="appendStep('products')">+ products</button>
+                        <button type="button" class="cat-pill" onclick="appendStep('cart')">+ cart</button>
+                        <button type="button" class="cat-pill" onclick="appendStep('add-to-cart')">+ add-to-cart</button>
+                        <button type="button" class="cat-pill" onclick="appendStep('checkout')">+ checkout</button>
+                        <button type="button" class="cat-pill" onclick="appendStep('pay')">+ pay</button>
+                        <button type="button" class="cat-pill" style="border-color: #ef4444; color: #ef4444;" onclick="appendStep('admin-test')">+ admin-test (honeypot)</button>
+                        <button type="button" class="cat-pill" style="background: #e2e8f0; color: #475569;" onclick="clearSequence()">Clear Chain</button>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--line); min-height: 48px;" id="sequenceDisplay">
+                        <span style="color: #94a3b8; font-style: italic;">No sequence selected. Click buttons above.</span>
+                    </div>
+                </div>
+
+                <div id="evaluationResult" style="display: none; padding: 18px; border-radius: 12px; border: 1px solid var(--line);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 id="resTitle" style="margin: 0;">Evaluation Result</h3>
+                        <span id="resBadge" class="status-chip">Normal</span>
+                    </div>
+                    <div class="grid-two" style="gap: 16px;">
+                        <div>
+                            <p style="margin: 0 0 6px;"><strong>Summary:</strong> <span id="resSummary">-</span></p>
+                            <p style="margin: 0 0 6px;"><strong>Violated Rule:</strong> <code id="resRule" style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">None</code></p>
+                            <p style="margin: 0;"><strong>Recommendation:</strong> <span id="resRec">-</span></p>
+                        </div>
+                        <div style="background: #f8fafc; padding: 12px; border-radius: 8px;">
+                            <p style="margin: 0 0 6px;"><strong>Calculated Risk Score:</strong> <span id="resScore" style="font-weight: 800; font-size: 18px;">0 / 100</span></p>
+                            <p style="margin: 0 0 6px;"><strong>Mitigation Action:</strong> <span id="resAction" style="font-weight: 700;">Allow</span></p>
+                            <p style="margin: 0;"><strong>HTTP Enforcement:</strong> <span id="resHttp" style="font-family: monospace;">200 OK</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- State Machine Dependency Map -->
+            <div class="grid-two" style="margin-bottom: 24px;">
+                <section class="panel">
+                    <h2>🗺️ Expected Business-State Transitions</h2>
+                    <p class="subtext">Every commerce API has explicit prerequisite states that must be satisfied:</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                            <strong>API: <code>products</code></strong>
+                            <span style="color: var(--teal-dark); font-weight: 700;">Requires: <code>login</code></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                            <strong>API: <code>add-to-cart</code> / <code>cart</code></strong>
+                            <span style="color: var(--teal-dark); font-weight: 700;">Requires: <code>products</code></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                            <strong>API: <code>checkout</code></strong>
+                            <span style="color: #ea580c; font-weight: 700;">Requires: <code>add-to-cart</code></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line);">
+                            <strong>API: <code>pay</code></strong>
+                            <span style="color: #dc2626; font-weight: 700;">Requires: <code>checkout</code></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(239,68,68,0.08); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(239,68,68,0.2);">
+                            <strong>Honeypots: <code>/api/*</code></strong>
+                            <span style="color: #dc2626; font-weight: 800;">🚫 Zero-Tolerance Quarantine</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>⚙️ Multi-Tier Adaptive Mitigations</h2>
+                    <p class="subtext">How the engine dynamically responds based on behavioral trust score:</p>
+                    
+                    <div style="display: grid; gap: 10px; margin-top: 14px;">
+                        <div style="padding: 12px; border-radius: 8px; background: rgba(16,185,129,0.1); border-left: 4px solid #10b981;">
+                            <strong style="color: #047857;">🟢 Trust Score 80–100 — Normal</strong>
+                            <div style="font-size: 13px; color: #94a3b8; margin-top: 2px;">100 req/min rate limit. Normal workflow allowed. No restrictions.</div>
+                        </div>
+                        <div style="padding: 12px; border-radius: 8px; background: rgba(245,158,11,0.1); border-left: 4px solid #f59e0b;">
+                            <strong style="color: #d97706;">🟡 Trust Score 50–79 — Suspicious</strong>
+                            <div style="font-size: 13px; color: #94a3b8; margin-top: 2px;">Rate limit tightened to 20 req/min. Progressive cooldown: 5s → 15s → 30s per violation.</div>
+                        </div>
+                        <div style="padding: 12px; border-radius: 8px; background: rgba(249,115,22,0.1); border-left: 4px solid #f97316;">
+                            <strong style="color: #ea580c;">🟠 Trust Score 0–49 — High Risk</strong>
+                            <div style="font-size: 13px; color: #94a3b8; margin-top: 2px;">Rate limit reduced to 5 req/min. Workflow locked. Step-Up Verification required for checkout/pay.</div>
+                        </div>
+                        <div style="padding: 12px; border-radius: 8px; background: rgba(127,29,29,0.12); border-left: 4px solid #dc2626;">
+                            <strong style="color: #ef4444;">🔴 Critical Violation — Quarantine + Revocation</strong>
+                            <div style="font-size: 13px; color: #94a3b8; margin-top: 2px;">Session quarantined and revoked. All sensitive API access blocked. Must re-authenticate.</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Attack → Prevention Mapping Table -->
+            <section class="panel table-panel" style="margin-bottom: 24px;">
+                <h2>🗺️ Attack → Prevention Mapping</h2>
+                <p class="subtext" style="margin-bottom:16px;">Each attack type maps to a specific prevention mechanism. API Sentinel applies the correct tier automatically based on the attack title — not just the risk level.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Attack Type</th>
+                            <th>Detected By</th>
+                            <th>Risk Level</th>
+                            <th>Prevention Mechanism</th>
+                            <th>HTTP Code</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Honeypot Probe</strong></td>
+                            <td>Accesses <code>/api/admin_test</code>, <code>/debug</code>, <code>/internal</code></td>
+                            <td><span class="status-chip status-critical" style="font-size:11px;">Critical</span></td>
+                            <td>🛑 Session Revocation + Quarantine</td>
+                            <td>403</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Payment Bypass</strong></td>
+                            <td><code>pay</code> called without <code>checkout</code></td>
+                            <td><span class="status-chip status-critical" style="font-size:11px;">Critical</span></td>
+                            <td>🚧 Session Quarantine + Workflow Lock</td>
+                            <td>403</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Checkout Bypass</strong></td>
+                            <td><code>checkout</code> without <code>add-to-cart</code></td>
+                            <td><span class="status-chip status-high" style="font-size:11px;">High</span></td>
+                            <td>🔒 Workflow Locking</td>
+                            <td>403</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Unauthenticated Access</strong></td>
+                            <td>Protected API without <code>login</code> in sequence</td>
+                            <td><span class="status-chip status-high" style="font-size:11px;">High</span></td>
+                            <td>🔒 Block + Workflow Lock</td>
+                            <td>403</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Out-of-Order Cart</strong></td>
+                            <td><code>cart</code> or <code>add-to-cart</code> before <code>products</code></td>
+                            <td><span class="status-chip status-medium" style="font-size:11px;">Medium</span></td>
+                            <td>⏱️ Warning + Cooldown (5s → 15s → 30s)</td>
+                            <td>429</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Checkout Replay</strong></td>
+                            <td><code>checkout</code> appears &gt;1 time in sequence</td>
+                            <td><span class="status-chip status-medium" style="font-size:11px;">Medium</span></td>
+                            <td>⏱️ Cooldown + 🔒 Workflow Lock</td>
+                            <td>429 / 403</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rate Burst</strong></td>
+                            <td>Requests exceed trust-band limit</td>
+                            <td><span class="status-chip status-high" style="font-size:11px;">High</span></td>
+                            <td>📊 Adaptive Rate Throttling (100→20→5 req/min)</td>
+                            <td>429</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sensitive Op After Violation</strong></td>
+                            <td><code>checkout</code>/<code>pay</code> after any prior violation</td>
+                            <td><span class="status-chip status-high" style="font-size:11px;">High</span></td>
+                            <td>🔐 Step-Up Verification (OTP challenge)</td>
+                            <td>401</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Active User Security Profiles -->
+            <section class="panel table-panel">
+                <h2>👤 Active User Trust Profiles & Real-Time States</h2>
+                <p class="subtext">Inspect the real-time trust scores and session lock status for all observed users.</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Trust Score</th>
+                            <th>Violations</th>
+                            <th>Workflow Status</th>
+                            <th>Cooldown Active</th>
+                            <th>Rate Limit</th>
+                            <th>Last Action</th>
+                            <th>Admin Control</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if user_states %}
+                            {% for u, state in user_states.items() %}
+                            <tr>
+                                <td><strong>{{ u }}</strong></td>
+                                <td>
+                                    <span class="status-chip {% if state.trust_score >= 80 %}status-low{% elif state.trust_score >= 50 %}status-medium{% else %}status-high{% endif %}">
+                                        {{ state.trust_score }} / 100
+                                    </span>
+                                </td>
+                                <td>{{ state.violations }}</td>
+                                <td>
+                                    {% if state.quarantined %}
+                                        <span class="status-chip status-critical">Quarantined</span>
+                                    {% elif state.workflow_locked %}
+                                        <span class="status-chip status-high">Locked</span>
+                                    {% else %}
+                                        <span class="status-chip status-low">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if state.cooldown_until %}
+                                        <span style="color: #ea580c; font-weight: 700;">⏱️ Active</span>
+                                    {% else %}
+                                        <span style="color: #94a3b8;">None</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "0" if state.quarantined else ("20/min" if state.violations else "100/min") }}</td>
+                                <td>{{ state.last_action }}</td>
+                                <td>
+                                    <form action="/api/reset-user-risk" method="POST" style="display:inline;">
+                                        <input type="hidden" name="user" value="{{ u }}">
+                                        <button type="submit" class="button button-sm" style="padding: 4px 10px; font-size: 12px; background: var(--navy);">Reset Trust (100)</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #94a3b8; padding: 24px;">No active session states yet.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </section>
+        </section>
+    </main>
+</div>
+
+<script>
+/* ── Profile Dropdown ── */
+function toggleProfileDropdown(e) {
+    e.stopPropagation();
+    const d = document.getElementById('profileDropdown');
+    const t = document.getElementById('profileTrigger');
+    if (d) { d.classList.toggle('show'); if (t) t.classList.toggle('active'); }
+}
+document.addEventListener('click', function(e) {
+    const d = document.getElementById('profileDropdown');
+    const t = document.getElementById('profileTrigger');
+    if (d && d.classList.contains('show') && !d.contains(e.target) && !t.contains(e.target)) {
+        d.classList.remove('show'); if (t) t.classList.remove('active');
+    }
+});
+
+/* ── Interactive Sequence Evaluator ── */
+let currentChain = [];
+
+function appendStep(step) {
+    currentChain.push(step);
+    renderChain();
+    evaluateChain();
+}
+
+function setSequence(seq) {
+    currentChain = [...seq];
+    renderChain();
+    evaluateChain();
+}
+
+function clearSequence() {
+    currentChain = [];
+    renderChain();
+    document.getElementById('evaluationResult').style.display = 'none';
+}
+
+function renderChain() {
+    const disp = document.getElementById('sequenceDisplay');
+    if (currentChain.length === 0) {
+        disp.innerHTML = '<span style="color: #94a3b8; font-style: italic;">No sequence selected. Click buttons above.</span>';
+        return;
+    }
+    disp.innerHTML = currentChain.map((s, idx) => 
+        `<span class="workflow-step" style="font-size: 13px; padding: 6px 10px;">${s}</span>` + 
+        (idx < currentChain.length - 1 ? '<span class="workflow-arrow" style="margin: 0 4px;">→</span>' : '')
+    ).join('');
+}
+
+async function evaluateChain() {
+    if (currentChain.length === 0) return;
+    try {
+        const res = await fetch('/api/evaluate-sequence', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sequence: currentChain })
+        });
+        const data = await res.json();
+        
+        const resultCard = document.getElementById('evaluationResult');
+        resultCard.style.display = 'block';
+
+        const isNormal = data.analysis.status === 'Normal';
+        const risk = data.analysis.risk || 'Low';
+
+        document.getElementById('resTitle').innerText = data.analysis.title || (isNormal ? 'Valid Sequence' : 'Abuse Detected');
+        
+        const badge = document.getElementById('resBadge');
+        badge.innerText = risk + ' Risk';
+        badge.className = 'status-chip ' + (risk === 'Low' ? 'status-low' : (risk === 'Medium' ? 'status-medium' : (risk === 'Critical' ? 'status-critical' : 'status-high')));
+
+        document.getElementById('resSummary').innerText = data.analysis.summary || 'Sequence followed all required business-state dependencies.';
+        document.getElementById('resRule').innerText = data.analysis.violated_rule || 'None (Valid flow)';
+        document.getElementById('resRec').innerText = data.analysis.recommendation || 'Allow commerce workflow to proceed.';
+        
+        document.getElementById('resScore').innerText = (data.analysis.risk_score || 0) + ' / 100';
+        document.getElementById('resAction').innerText = data.prevention.action || 'Allow';
+        document.getElementById('resHttp').innerText = (data.prevention.http_status || 200) + (data.prevention.http_status === 200 ? ' OK' : (data.prevention.http_status === 429 ? ' Too Many Requests' : ' Forbidden'));
+
+        resultCard.style.borderColor = isNormal ? '#10b981' : (risk === 'Critical' ? '#7f1d1d' : '#ef4444');
+        resultCard.style.background = isNormal ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)';
+    } catch(err) {
+        console.error(err);
+    }
+}
+</script>
+</body>
+</html>

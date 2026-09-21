@@ -41,3 +41,18 @@ manoj,add-to-cart,Workflow Locked,High,78,Workflow Lock,50,2,2026-09-01 11:01:54
 manoj,products,Unauthenticated Workflow Access,High,82,Workflow Lock,75,1,2026-09-01 11:08:06.065530
 manoj,checkout,Repeated Checkout Attempt,Medium,70,Adaptive Cooldown,63,2,2026-09-01 11:08:36.391791
 manoj,checkout,Business-State Dependency Violation,High,86,Workflow Lock,75,1,2026-09-01 11:22:29.661634
+manoj123,checkout,Business-State Dependency Violation,High,86,Workflow Lock,75,1,2026-09-02 06:11:07.328477
+manoj123,checkout,Workflow Locked,High,78,Block + Workflow Lock,50,2,2026-09-02 06:14:52.961750
+manoj123,checkout,Workflow Locked,High,78,Block + Workflow Lock,25,3,2026-09-02 06:15:26.440672
+manoj123,checkout,Workflow Locked,High,78,Block + Workflow Lock,0,4,2026-09-02 06:15:50.808680
+manoj123,checkout,Unauthenticated Workflow Access,High,82,Block + Workflow Lock,75,1,2026-09-02 06:17:49.220546
+manoj123,checkout,Workflow Locked,High,78,Block + Workflow Lock,50,2,2026-09-02 06:17:50.337336
+manoj123,products,Workflow Locked,High,78,Block + Workflow Lock,25,3,2026-09-02 06:18:01.206910
+manoj123,products,Workflow Locked,High,78,Block + Workflow Lock,0,4,2026-09-02 06:18:02.558317
+manoj123,cart,Workflow Locked,High,78,Block + Workflow Lock,0,5,2026-09-02 06:18:03.762283
+manoj123,cart,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,0,5,2026-09-02 06:18:07.658466
+manoj123,cart,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,0,5,2026-09-02 06:18:12.797465
+manoj123,products,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,0,5,2026-09-02 06:18:15.242823
+manoj123,checkout,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,0,5,2026-09-02 06:18:16.852419
+manoj123,cart,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,0,5,2026-09-02 06:18:19.225430
+manoj123,products,Adaptive Rate Limit Exceeded,High,83,Adaptive Rate Limit,0,5,2026-09-02 06:18:20.055702

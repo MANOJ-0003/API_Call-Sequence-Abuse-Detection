@@ -28,3 +28,7 @@ ENV/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local shims
+powershell.cmd
+powershell.bat
